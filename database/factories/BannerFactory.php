@@ -5,31 +5,20 @@ namespace Database\Factories;
 use App\Models\Banner;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends Factory<Banner>
- */
 class BannerFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
-   public function definition(): array
-{
-    return [
-        'image_path' => fake()->imageUrl(),
+    protected $model = Banner::class;
 
-        'slogan' => [
-            'ar' => fake()->sentence(),
-        ],
+    public function definition(): array
+    {
+        $titles = ['Special Offer', 'New Collection', 'Summer Sale', 'Discount 50%'];
 
-        'sort_order' => fake()->numberBetween(1, 10),
-
-        'status' => fake()->randomElement([
-            'active',
-            'inactive',
-        ]),
-    ];
-}
+        return [
+            'image' => 'banners/default.jpg',
+            'title' => $titles[array_rand($titles)],
+            'description' => 'This is a description for the banner element.',
+            'sort_order' => rand(1, 10),
+            'status' => 1,
+        ];
+    }
 }

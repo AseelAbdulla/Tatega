@@ -4,15 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-
 class Banner extends Model
 {
     protected $fillable = [
-        'image',
-        'title',
-        'description',
+        'image_path',
+        'slogan',
         'sort_order',
         'status',
     ];
 }
-
