@@ -15,14 +15,11 @@ class SettingFactory extends Factory
      *
      * @return array<string, mixed>
      */
-   public function definition(): array
-{
-    return [
-        'key' => fake()->unique()->word(),
-
-        'value' => [
-            'ar' => fake()->sentence(),
-        ],
-    ];
-}
+    public function definition(): array
+    {
+        return [
+            'key' => fake()->unique()->word(),
+            'value' => json_encode(['ar' => fake()->sentence()], JSON_UNESCAPED_UNICODE),
+        ];
+    }
 }
