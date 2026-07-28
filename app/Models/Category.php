@@ -10,12 +10,11 @@ class Category extends Model
     protected $fillable = [
         'name',
         'slug',
-        'image',
-        'description',
-        'sort_order',
-        'status',
+        'image'
     ];
-
+    protected $casts = [
+        'name' => 'array',
+    ];
     public function products()
     {
         return $this->hasMany(Product::class);

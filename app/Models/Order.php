@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
 {
+    // تم تصحيح اسماء الحقول بما يتناسب مع الجداول
     protected $fillable = [
         'user_id',
         'address_id',
@@ -16,10 +17,11 @@ class Order extends Model
         'tax',
         'total_price',
         'rejection_reason',
-        'order_date',
+        'order_type',
         'updated_date',
         'customer_name',
         'customer_phone',
+        'customer_email',
         'notes',
     ];
 

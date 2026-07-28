@@ -12,9 +12,12 @@ class Role extends Model
         'display_name',
     ];
 
+    protected $casts = [
+        'display_name' => 'array',
+    ];
+
     public function users()
     {
         return $this->belongsToMany(User::class, 'role_user');
     }
 }
-

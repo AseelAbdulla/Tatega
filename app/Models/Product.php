@@ -20,6 +20,11 @@ class Product extends Model
         'status',
     ];
 
+    protected $casts = [
+        'name' => 'array',
+        'description' => 'array',
+    ];
+
     public function category()
     {
         return $this->belongsTo(Category::class);
@@ -40,4 +45,3 @@ class Product extends Model
         return $this->hasMany(Review::class);
     }
 }
-

@@ -14,6 +14,9 @@ class ProductUnit extends Model
         'stock',
     ];
 
+      protected $casts = [
+        'unit_name' => 'array',
+    ];
     public function product()
     {
         return $this->belongsTo(Product::class);

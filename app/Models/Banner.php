@@ -12,4 +12,8 @@ class Banner extends Model
         'sort_order',
         'status',
     ];
+
+    protected $casts = [
+        'slogan' => 'array',
+    ];
 }

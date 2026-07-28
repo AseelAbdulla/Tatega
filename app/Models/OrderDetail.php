@@ -7,11 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class OrderDetail extends Model
 {
+    //  // تم تصحيح اسماء الحقول بما يتناسب مع الجداول
     protected $fillable = [
         'order_id',
         'product_id',
-        'product_name',
-        'unit_name',
+        'unit_id',
+        'product_name_snapshot',
+        'unit_name_snapshot',
         'quantity',
         'unit_price',
         'total_price',

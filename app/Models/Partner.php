@@ -10,10 +10,17 @@ class Partner extends Model
     protected $fillable = [
         'name',
         'logo',
-        'website',
+        'website_url',
         'slogan',
         'sort_order',
         'status',
+        'lng',
+        'lat',
+        
+    ];
+
+      protected $casts = [
+        'name' => 'array'
     ];
 }
 

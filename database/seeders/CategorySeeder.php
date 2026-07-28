@@ -10,7 +10,10 @@ class CategorySeeder extends Seeder
     public function run(): void
     {
         Category::create([
-            'name' => 'Electronics',
+            'name' => [
+                'ar' => 'إلكترونيات',
+                'en' => 'Electronics',
+            ],
             'slug' => 'electronics',
         ]);
     }

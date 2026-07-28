@@ -9,8 +9,12 @@ class PartnerSeeder extends Seeder
 {
     public function run(): void
     {
+        // تم التعديل بما يدعم اللغتين
         Partner::create([
-            'name' => 'Partner Name',
+            'name' => [
+                'ar' => 'اسم العميل',
+                'en' => 'Partner Name',
+            ],
             'logo' => 'partners/default.png',
             'status' => 1,
         ]);

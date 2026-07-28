@@ -14,7 +14,7 @@ class UserFactory extends Factory
     {
         return [
             'name' => 'User ' . rand(1, 100),
-            'email' => 'user_' . rand(1, 1000) . '@example.com',
+            'email' => fake()->unique()->userName() . '@example.com',
             'phone' => '05' . rand(10000000, 99999999),
             'password' => Hash::make('password'),
             'status' => 'active',

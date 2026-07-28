@@ -13,14 +13,36 @@ class RoleSeeder extends Seeder
     public function run(): void
     {
         // إنشاء الأدوار الأساسية للنظام
+        // تم تعديل نوع البيانات بحيث يدعم اللغتن
         $roles = [
-            ['name' => 'admin', 'display_name' => 'مدير النظام'],
-            ['name' => 'customer', 'display_name' => 'عميل'],
-            ['name' => 'importer', 'display_name' => 'مستورد'],
+            [
+                'name' => 'admin',
+                'display_name' => [
+                    'ar' => 'مدير النظام',
+                    'en' => 'Administrator',
+                ],
+            ],
+            [
+                'name' => 'customer',
+                'display_name' => [
+                    'ar' => 'عميل',
+                    'en' => 'Customer',
+                ],
+            ],
+            [
+                'name' => 'importer',
+                'display_name' => [
+                    'ar' => 'مستورد',
+                    'en' => 'Importer',
+                ],
+            ],
         ];
 
         foreach ($roles as $role) {
-            Role::firstOrCreate(['name' => $role['name']], $role);
+            Role::firstOrCreate(
+                ['name' => $role['name']],
+                $role
+            );
         }
     }
 }

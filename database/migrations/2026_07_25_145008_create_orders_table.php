@@ -13,8 +13,8 @@ return new class extends Migration
             $table->id();
 
             $table->foreignId('user_id')
-                  ->constrained('users')
-                  ->cascadeOnDelete();
+                ->constrained('users')
+                ->cascadeOnDelete();
 
             $table->string('order_type', 50)->default('normal');
             $table->string('status', 50)->default('pending');
@@ -24,9 +24,9 @@ return new class extends Migration
             $table->string('customer_email', 255);
 
             $table->foreignId('address_id')
-                  ->nullable()
-                  ->constrained('addresses')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('addresses')
+                ->nullOnDelete();
 
             $table->text('notes')->nullable();
 

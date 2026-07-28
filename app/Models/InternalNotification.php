@@ -16,6 +16,10 @@ class InternalNotification extends Model
         'sent_at',
     ];
 
+      protected $casts = [
+        'title' => 'array',
+        'message' => 'array',
+    ];
     public function user()
     {
         return $this->belongsTo(User::class);

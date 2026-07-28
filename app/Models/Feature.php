@@ -9,10 +9,15 @@ class Feature extends Model
 {
     protected $fillable = [
         'icon',
-        'name',
+        'title',
         'description',
         'sort_order',
         'status',
+    ];
+
+      protected $casts = [
+        'title' => 'array',
+        'description' => 'array', 
     ];
 }
 

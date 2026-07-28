@@ -9,9 +9,16 @@ class FeatureSeeder extends Seeder
 {
     public function run(): void
     {
+        // تم تعديل البيانات بحيث تدعم اللغتين
         Feature::create([
-            'title' => 'Fast Shipping',
-            'description' => 'Get your products delivered quickly.',
+            'title' => [
+                'ar' => 'تسوق سريع',
+                'en' => 'Fast Shipping',
+            ],
+            'description'=> [
+                'ar' => 'اجعل منتجاتك تصل بسرعه',
+                'en' => 'Get your products delivered quickly.',
+            ],
             'icon' => 'default-icon.png', // أو أي اسم أيقونة موجود في جدولك
         ]);
     }
