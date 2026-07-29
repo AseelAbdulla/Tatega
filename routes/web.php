@@ -36,3 +36,7 @@ Route::resource('categories', CategoryController::class);
 
 
 Route::resource('products', ProductController::class);
+
+;
+
+Route::resource('product-images', ProductImageController::class);
