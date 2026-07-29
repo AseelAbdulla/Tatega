@@ -7,6 +7,10 @@ use App\Http\Controllers\ProductImageController;
 use App\Http\Controllers\ProductUnitController;
 use Illuminate\Support\Facades\Route;
 
+use App\Models\Category;
+use App\Models\Product;
+use App\Models\ProductImage;
+use App\Models\ProductUnit;
 
 Route::get('/', function () {
     return view('welcome');
@@ -40,3 +44,20 @@ Route::resource('products', ProductController::class);
 Route::resource('product-images', ProductImageController::class);
 
 Route::resource('product-units', ProductUnitController::class);
+
+
+Route::get('/dashboard', function () {
+
+    return view('dashboard', [
+
+        'categories' => Category::all(),
+
+        'products' => Product::with('category')->get(),
+
+        'images' => ProductImage::with('product')->get(),
+
+        'units' => ProductUnit::with('product')->get(),
+
+    ]);
+
+});
