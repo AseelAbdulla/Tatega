@@ -5,7 +5,6 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductImageController;
 use App\Http\Controllers\ProductUnitController;
-
 use Illuminate\Support\Facades\Route;
 
 
@@ -34,3 +33,6 @@ Route::delete('/reviews/{id}', [ReviewController::class, 'destroy'])
 // Categories
 Route::resource('categories', CategoryController::class);
 
+
+
+Route::resource('products', ProductController::class);
