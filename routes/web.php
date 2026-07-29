@@ -1,12 +1,20 @@
 <?php
 
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductImageController;
+use App\Http\Controllers\ProductUnitController;
+
 use Illuminate\Support\Facades\Route;
+
 
 Route::get('/', function () {
     return view('welcome');
 });
 
+
+// Reviews
 Route::get('/reviews', [ReviewController::class, 'index'])
     ->name('reviews.index');
 
@@ -21,3 +29,8 @@ Route::put('/reviews/{id}', [ReviewController::class, 'update'])
 
 Route::delete('/reviews/{id}', [ReviewController::class, 'destroy'])
     ->name('reviews.destroy');
+
+
+// Categories
+Route::resource('categories', CategoryController::class);
+
