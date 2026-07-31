@@ -19,6 +19,10 @@ class OrderDetail extends Model
         'total_price',
     ];
 
+    protected $casts = [
+        'product_name_snapshot' => 'array',
+        'unit_name_snapshot' => 'array',
+    ];
     public function order()
     {
         return $this->belongsTo(Order::class);
@@ -27,5 +31,10 @@ class OrderDetail extends Model
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function unit()
+    {
+        return $this->belongsTo(ProductUnit::class);
     }
 }

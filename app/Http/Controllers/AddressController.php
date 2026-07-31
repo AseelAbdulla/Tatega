@@ -60,7 +60,6 @@ class AddressController extends Controller
         }
 
 
-
         $address = Address::create([
 
             'user_id' => $request->user_id,
@@ -122,10 +121,6 @@ class AddressController extends Controller
         ]);
 
     }
-
-
-
-
 
     /**
      * Update address.
