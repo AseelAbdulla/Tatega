@@ -3,130 +3,183 @@
 namespace App\Http\Controllers;
 
 use App\Models\ProductImage;
-use App\Models\Product;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+
+use App\Http\Requests\StoreProductImageRequest;
+use App\Http\Requests\UpdateProductImageRequest;
+
+use App\Http\Resources\ProductImageResource;
+
+
 
 class ProductImageController extends Controller
 {
 
-    // عرض الصور
+
+    // عرض جميع الصور
     public function index()
     {
-        $images = ProductImage::with('product')->get();
 
-        return view('product_images.index', compact('images'));
+        $images = ProductImage::with('product')
+            ->get();
+
+
+        return ProductImageResource::collection($images);
+
     }
 
 
-    // صفحة إضافة صورة
-    public function create()
-    {
-        $products = Product::all();
-
-        return view('product_images.create', compact('products'));
-    }
 
 
-    // حفظ الصورة
-    public function store(Request $request)
+    // إضافة صورة
+    public function store(StoreProductImageRequest $request)
     {
 
-        $request->validate([
+        $data = $request->validated();
 
-            'product_id' => 'required',
 
-            'image' => 'required|image',
+
+        $imagePath = $request
+            ->file('image')
+            ->store('products','public');
+
+
+
+        $image = ProductImage::create([
+
+
+            'product_id' => $data['product_id'],
+
+
+            'image_path' => $imagePath,
+
+
+            'is_main' =>
+                $data['is_main'] ?? false,
+
+
+            'sort_order' =>
+                $data['sort_order'] ?? 0,
 
         ]);
 
 
-        $imagePath = $request->file('image')
-            ->store('products', 'public');
 
-
-        ProductImage::create([
-
-            'product_id' => $request->product_id,
-
-            'image' => $imagePath,
-
-            'is_main' => $request->is_main ?? false,
-
-            'sort_order' => $request->sort_order ?? 0,
-
-        ]);
-
-
-        return redirect()
-            ->route('product-images.index')
-            ->with('success','Image added successfully');
+        return new ProductImageResource(
+            $image->load('product')
+        );
 
     }
+
+
 
 
 
     // عرض صورة
     public function show(ProductImage $productImage)
     {
-        return view('product_images.show', compact('productImage'));
+
+        return new ProductImageResource(
+            $productImage->load('product')
+        );
+
     }
 
 
 
-    // تعديل
-    public function edit(ProductImage $productImage)
-    {
-        $products = Product::all();
-
-        return view('product_images.edit',
-            compact('productImage','products'));
-    }
 
 
-
-    // تحديث
-    public function update(Request $request, ProductImage $productImage)
+    // تحديث الصورة
+    public function update(
+        UpdateProductImageRequest $request,
+        ProductImage $productImage
+    )
     {
 
-        $data = [
+        $data = $request->validated();
 
-            'product_id'=>$request->product_id,
-
-            'is_main'=>$request->is_main ?? false,
-
-            'sort_order'=>$request->sort_order ?? 0,
-
-        ];
 
 
         if($request->hasFile('image')){
 
-            $data['image'] =
+
+            if(
+                $productImage->image_path &&
+                Storage::disk('public')
+                ->exists($productImage->image_path)
+            ){
+
+                Storage::disk('public')
+                ->delete($productImage->image_path);
+
+            }
+
+
+
+            $data['image_path'] =
                 $request->file('image')
                 ->store('products','public');
 
         }
 
 
-        $productImage->update($data);
+
+        $productImage->update([
+
+            'product_id' => $data['product_id'],
+
+            'image_path' =>
+                $data['image_path']
+                ?? $productImage->image_path,
+
+            'is_main' =>
+                $data['is_main'] ?? false,
 
 
-        return redirect()
-            ->route('product-images.index');
+            'sort_order' =>
+                $data['sort_order'] ?? 0,
+
+        ]);
+
+
+
+        return new ProductImageResource(
+            $productImage->load('product')
+        );
 
     }
 
 
 
-    // حذف
+
+
+    // حذف الصورة
     public function destroy(ProductImage $productImage)
     {
+
+
+        if(
+            $productImage->image_path &&
+            Storage::disk('public')
+            ->exists($productImage->image_path)
+        ){
+
+            Storage::disk('public')
+            ->delete($productImage->image_path);
+
+        }
+
+
 
         $productImage->delete();
 
 
-        return redirect()
-            ->route('product-images.index');
+
+        return response()->json([
+
+            'message'=>'Product image deleted successfully'
+
+        ]);
 
     }
 

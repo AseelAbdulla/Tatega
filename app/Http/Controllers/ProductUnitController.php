@@ -3,141 +3,135 @@
 namespace App\Http\Controllers;
 
 use App\Models\ProductUnit;
-use App\Models\Product;
-use Illuminate\Http\Request;
+
+use App\Http\Requests\StoreProductUnitRequest;
+use App\Http\Requests\UpdateProductUnitRequest;
+
+use App\Http\Resources\ProductUnitResource;
+
+
 
 class ProductUnitController extends Controller
 {
 
+
     // عرض جميع الوحدات
     public function index()
     {
-        $units = ProductUnit::with('product')->get();
 
-        return view('product_units.index', compact('units'));
+        $units = ProductUnit::with('product')
+            ->get();
+
+
+        return ProductUnitResource::collection($units);
+
     }
 
 
-    // صفحة إضافة وحدة
-    public function create()
+
+
+    // إضافة وحدة
+    public function store(StoreProductUnitRequest $request)
     {
-        $products = Product::all();
 
-        return view('product_units.create', compact('products'));
-    }
+        $data = $request->validated();
 
 
-    // حفظ الوحدة
-    public function store(Request $request)
-    {
-        $request->validate([
 
-            'product_id' => 'required|exists:products,id',
-
-            'unit_name_ar' => 'required',
-
-            'unit_name_en' => 'required',
-
-            'price' => 'required|numeric',
-
-            'stock' => 'nullable|integer',
-
-        ]);
+        $unit = ProductUnit::create([
 
 
-        ProductUnit::create([
-
-            'product_id' => $request->product_id,
+            'product_id' => $data['product_id'],
 
 
             'unit_name' => [
 
-                'ar' => $request->unit_name_ar,
+                'ar' => $data['unit_name_ar'],
 
-                'en' => $request->unit_name_en,
+                'en' => $data['unit_name_en'],
 
             ],
 
 
-            'price' => $request->price,
+            'price' => $data['price'],
 
 
-            'stock' => $request->stock ?? 0,
+            'stock' =>
+                $data['stock'] ?? 0,
 
         ]);
 
 
-        return redirect()
-            ->route('product-units.index')
-            ->with('success', 'Unit added successfully');
+
+        return new ProductUnitResource(
+            $unit->load('product')
+        );
+
     }
+
+
 
 
 
     // عرض وحدة واحدة
     public function show(ProductUnit $productUnit)
     {
-        return view('product_units.show', compact('productUnit'));
+
+        return new ProductUnitResource(
+            $productUnit->load('product')
+        );
+
     }
 
 
-
-    // صفحة تعديل الوحدة
-    public function edit(ProductUnit $productUnit)
-    {
-        $products = Product::all();
-
-        return view('product_units.edit',
-            compact('productUnit', 'products'));
-    }
 
 
 
     // تحديث الوحدة
-    public function update(Request $request, ProductUnit $productUnit)
+    public function update(
+        UpdateProductUnitRequest $request,
+        ProductUnit $productUnit
+    )
     {
 
-        $request->validate([
+        $data = $request->validated();
 
-            'product_id' => 'required|exists:products,id',
-
-            'unit_name_ar' => 'required',
-
-            'unit_name_en' => 'required',
-
-            'price' => 'required|numeric',
-
-            'stock' => 'nullable|integer',
-
-        ]);
 
 
         $productUnit->update([
 
-            'product_id' => $request->product_id,
+
+            'product_id' =>
+                $data['product_id'],
 
 
             'unit_name' => [
 
-                'ar' => $request->unit_name_ar,
+                'ar' => $data['unit_name_ar'],
 
-                'en' => $request->unit_name_en,
+                'en' => $data['unit_name_en'],
 
             ],
 
 
-            'price' => $request->price,
+            'price' =>
+                $data['price'],
 
 
-            'stock' => $request->stock ?? 0,
+            'stock' =>
+                $data['stock'] ?? 0,
 
         ]);
 
 
-        return redirect()
-            ->route('product-units.index')
-            ->with('success', 'Unit updated successfully');
+
+        return new ProductUnitResource(
+            $productUnit->load('product')
+        );
+
     }
+
+
 
 
 
@@ -148,9 +142,14 @@ class ProductUnitController extends Controller
         $productUnit->delete();
 
 
-        return redirect()
-            ->route('product-units.index')
-            ->with('success', 'Unit deleted successfully');
+
+        return response()->json([
+
+            'message' =>
+                'Product unit deleted successfully'
+
+        ]);
+
     }
 
 }
