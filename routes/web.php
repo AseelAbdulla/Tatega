@@ -37,37 +37,7 @@ Route::put('/reviews/{id}', [ReviewController::class, 'update'])
 Route::delete('/reviews/{id}', [ReviewController::class, 'destroy'])
     ->name('reviews.destroy');
 
-<<<<<<< HEAD
-
-// Categories
-Route::resource('categories', CategoryController::class);
-
-
-
-Route::resource('products', ProductController::class);
-
-Route::resource('product-images', ProductImageController::class);
-
-Route::resource('product-units', ProductUnitController::class);
-
-
-Route::get('/dashboard', function () {
-
-    return view('dashboard', [
-
-        'categories' => Category::all(),
-
-        'products' => Product::with('category')->get(),
-
-        'images' => ProductImage::with('product')->get(),
-
-        'units' => ProductUnit::with('product')->get(),
-
-    ]);
-
-});
-=======
-    Route::get('/banners', [BannerController::class, 'index'])
+Route::get('/banners', [BannerController::class, 'index'])
     ->name('banners.index');
 
 Route::get('/banners/{id}', [BannerController::class, 'show'])
@@ -83,7 +53,7 @@ Route::delete('/banners/{id}', [BannerController::class, 'destroy'])
     ->name('banners.destroy');
 
 
-    Route::get('/features', [FeatureController::class, 'index'])
+Route::get('/features', [FeatureController::class, 'index'])
     ->name('features.index');
 
 Route::get('/features/{id}', [FeatureController::class, 'show'])
@@ -99,7 +69,7 @@ Route::delete('/features/{id}', [FeatureController::class, 'destroy'])
     ->name('features.destroy');
 
 
-    Route::get('/settings', [SettingController::class, 'index'])
+Route::get('/settings', [SettingController::class, 'index'])
     ->name('settings.index');
 
 Route::get('/settings/{id}', [SettingController::class, 'show'])
@@ -115,7 +85,7 @@ Route::delete('/settings/{id}', [SettingController::class, 'destroy'])
     ->name('settings.destroy');
 
 
-    Route::get('/partners', [PartnerController::class, 'index'])
+Route::get('/partners', [PartnerController::class, 'index'])
     ->name('partners.index');
 
 Route::get('/partners/{id}', [PartnerController::class, 'show'])
@@ -129,4 +99,3 @@ Route::put('/partners/{id}', [PartnerController::class, 'update'])
 
 Route::delete('/partners/{id}', [PartnerController::class, 'destroy'])
     ->name('partners.destroy');
->>>>>>> 9d963780967c3ddd41c285920a91b4027b7b181a
