@@ -5,20 +5,20 @@ use App\Http\Controllers\PartnerController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\FeatureController;
 use App\Http\Controllers\ReviewController;
+
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductImageController;
 use App\Http\Controllers\ProductUnitController;
+
 use Illuminate\Support\Facades\Route;
 
-use App\Models\Category;
-use App\Models\Product;
-use App\Models\ProductImage;
-use App\Models\ProductUnit;
+
 
 Route::get('/', function () {
     return view('welcome');
 });
+
 
 
 // Reviews
@@ -37,6 +37,10 @@ Route::put('/reviews/{id}', [ReviewController::class, 'update'])
 Route::delete('/reviews/{id}', [ReviewController::class, 'destroy'])
     ->name('reviews.destroy');
 
+
+
+
+// Banners
 Route::get('/banners', [BannerController::class, 'index'])
     ->name('banners.index');
 
@@ -53,6 +57,9 @@ Route::delete('/banners/{id}', [BannerController::class, 'destroy'])
     ->name('banners.destroy');
 
 
+
+
+// Features
 Route::get('/features', [FeatureController::class, 'index'])
     ->name('features.index');
 
@@ -69,6 +76,9 @@ Route::delete('/features/{id}', [FeatureController::class, 'destroy'])
     ->name('features.destroy');
 
 
+
+
+// Settings
 Route::get('/settings', [SettingController::class, 'index'])
     ->name('settings.index');
 
@@ -85,6 +95,9 @@ Route::delete('/settings/{id}', [SettingController::class, 'destroy'])
     ->name('settings.destroy');
 
 
+
+
+// Partners
 Route::get('/partners', [PartnerController::class, 'index'])
     ->name('partners.index');
 
@@ -99,3 +112,27 @@ Route::put('/partners/{id}', [PartnerController::class, 'update'])
 
 Route::delete('/partners/{id}', [PartnerController::class, 'destroy'])
     ->name('partners.destroy');
+
+
+
+
+
+// ===============================
+// Routes الخاصة بك
+// ===============================
+
+
+// Categories
+Route::resource('categories', CategoryController::class);
+
+
+// Products
+Route::resource('products', ProductController::class);
+
+
+// Product Images
+Route::resource('product-images', ProductImageController::class);
+
+
+// Product Units
+Route::resource('product-units', ProductUnitController::class);
