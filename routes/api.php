@@ -10,6 +10,12 @@ use App\Http\Controllers\CartItemController;
 use App\Http\Controllers\InternalNotificationController;
 use App\Http\Controllers\OrderController;
 
+use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\BannerController;
+use App\Http\Controllers\FeatureController;
+use App\Http\Controllers\PartnerController;
+use App\Http\Controllers\SettingController;
+
 
 // Controllers الخاصة بك
 use App\Http\Controllers\CategoryController;
@@ -111,5 +117,31 @@ Route::get(
 );
 
 
+
+
+Route::apiResource(
+    'reviews',
+    ReviewController::class
+);
+
+Route::apiResource(
+    'banners',
+    BannerController::class
+);
+
+Route::apiResource(
+    'features',
+    FeatureController::class
+);
+
+Route::apiResource(
+    'partners',
+    PartnerController::class
+);
+
+Route::apiResource(
+    'settings',
+    SettingController::class
+);
 
 // });
