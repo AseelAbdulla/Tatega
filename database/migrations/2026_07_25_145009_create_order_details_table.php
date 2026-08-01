@@ -13,21 +13,21 @@ return new class extends Migration
             $table->id();
 
             $table->foreignId('order_id')
-                  ->constrained('orders')
-                  ->cascadeOnDelete();
+                ->constrained('orders')
+                ->cascadeOnDelete();
 
             $table->foreignId('product_id')
-                  ->nullable()
-                  ->constrained('products')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('products')
+                ->nullOnDelete();
 
             $table->foreignId('unit_id')
-                  ->nullable()
-                  ->constrained('product_units')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('product_units')
+                ->nullOnDelete();
 
-            $table->string('product_name_snapshot', 255);
-            $table->string('unit_name_snapshot', 100);
+            $table->json('product_name_snapshot', 255);
+            $table->json('unit_name_snapshot', 100);
 
             $table->integer('quantity');
 
