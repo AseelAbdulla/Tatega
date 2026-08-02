@@ -26,6 +26,9 @@ class OrderSeeder extends Seeder
             'tax' => 0.00,
             'total_price' => 300.00,
             'rejection_reason' => null,
+            'payment_status' => 'pending',
+            'payment_method' => 'cash_on_delivery',
+            'payment_recepit' => 'order/default.jpg',
         ]);
     }
 }

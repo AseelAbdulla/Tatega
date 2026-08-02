@@ -25,12 +25,25 @@ class OrderController extends Controller
     {
 
         $order = $this->orderService->createOrder(
-            Auth::user(),
-            $request->validated()
+
+            user: Auth::user(),
+
+            data: $request->validated(),
+
+            receipt: $request->file('payment_receipt')
+
         );
 
 
-        return new OrderResource($order);
+        return response()->json([
+
+            'status' => true,
+
+            'message' => 'تم إنشاء الطلب بنجاح.',
+
+            'data' => new OrderResource($order),
+
+        ], 201);
 
     }
 

@@ -2,6 +2,8 @@
 
 namespace Database\Factories;
 
+use App\Enums\PaymentMethod;
+use App\Enums\PaymentStatus;
 use App\Models\User;
 use App\Models\Address;
 use App\Models\Order;
@@ -17,38 +19,56 @@ class OrderFactory extends Factory
      *
      * @return array<string, mixed>
      */
-   public function definition(): array
-{
-    return [
-        'user_id' => User::factory(),
+    public function definition(): array
+    {
 
-        'order_type' => 'normal',
+        return [
+            'user_id' => User::factory(),
 
-        'status' => fake()->randomElement([
-            'pending',
-            'completed',
-            'cancelled'
-        ]),
+            'order_type' => 'normal',
 
-        'customer_name' => fake()->name(),
+            'status' => fake()->randomElement([
+                'pending',
+                'completed',
+                'cancelled'
+            ]),
 
-        'customer_phone' => fake()->phoneNumber(),
+            'customer_name' => fake()->name(),
 
-        'customer_email' => fake()->safeEmail(),
+            'customer_phone' => fake()->phoneNumber(),
 
-        'address_id' => Address::factory(),
+            'customer_email' => fake()->safeEmail(),
 
-        'notes' => fake()->optional()->sentence(),
+            'address_id' => Address::factory(),
 
-        'subtotal' => fake()->randomFloat(2, 50, 1000),
+            'notes' => fake()->optional()->sentence(),
 
-        'discount' => fake()->randomFloat(2, 0, 100),
+            'subtotal' => fake()->randomFloat(2, 50, 1000),
 
-        'tax' => fake()->randomFloat(2, 0, 50),
+            'discount' => fake()->randomFloat(2, 0, 100),
 
-        'total_price' => fake()->randomFloat(2, 50, 1200),
+            'tax' => fake()->randomFloat(2, 0, 50),
 
-        'rejection_reason' => fake()->optional()->sentence(),
-    ];
-}
+            'total_price' => fake()->randomFloat(2, 50, 1200),
+
+            'rejection_reason' => fake()->optional()->sentence(),
+
+            /*
+            | بيانات الدفع
+            */
+
+            'payment_method' => fake()->randomElement([
+                'wallet',
+                'cash_on_delivery',
+            ]),
+
+            'payment_status' => fake()->randomElement([
+                'pending',
+                'pending_review'
+            ]),
+
+
+            'payment_recepit' => 'order/default.jpg',
+        ];
+    }
 }

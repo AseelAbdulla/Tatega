@@ -2,7 +2,10 @@
 
 namespace App\Models;
 
+use App\Enums\OrderStatus;
 use Illuminate\Database\Eloquent\Model;
+use App\Enums\PaymentMethod;
+use App\Enums\PaymentStatus;
 
 
 class Order extends Model
@@ -23,6 +26,12 @@ class Order extends Model
         'customer_phone',
         'customer_email',
         'notes',
+    ];
+
+    protected $casts = [
+        'payment_method' => PaymentMethod::class,
+        'payment_status' => PaymentStatus::class,
+        'status' => OrderStatus::class,
     ];
 
     public function user()
