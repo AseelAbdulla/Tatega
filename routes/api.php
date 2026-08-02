@@ -144,4 +144,6 @@ Route::apiResource(
     SettingController::class
 );
 
+// sync update
+
 // });
