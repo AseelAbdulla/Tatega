@@ -3,99 +3,62 @@
 namespace App\Http\Controllers;
 
 use App\Models\Partner;
-use Illuminate\Http\Request;
+use App\Services\PartnerService;
+use App\Http\Resources\PartnerResource;
+use App\Http\Requests\StorePartnerRequest;
+use App\Http\Requests\UpdatePartnerRequest;
 
 class PartnerController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    public function __construct(
+        protected PartnerService $partnerService
+    ) {}
+
+
     public function index()
     {
-        $partners = Partner::all();
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'تم جلب الشركاء بنجاح',
-            'data' => $partners
-        ], 200);
+        return PartnerResource::collection(
+            $this->partnerService->index()
+        );
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+
+    public function store(StorePartnerRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|array',
-            'logo' => 'required|string|max:255',
-            'website_url' => 'nullable|string|max:255',
-            'sort_order' => 'nullable|integer',
-            'status' => 'nullable|string|max:50',
-            'lat' => 'nullable|numeric',
-            'lng' => 'nullable|numeric',
-        ]);
+        $partner = $this->partnerService->store(
+            $request->validated()
+        );
 
-        $partner = Partner::create($validated);
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'تم إضافة الشريك بنجاح',
-            'data' => $partner
-        ], 201);
+        return new PartnerResource($partner);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        $partner = Partner::findOrFail($id);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'تم جلب الشريك بنجاح',
-            'data' => $partner
-        ], 200);
+    public function show(Partner $partner)
+    {
+        return new PartnerResource(
+            $this->partnerService->show($partner)
+        );
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+
+    public function update(UpdatePartnerRequest $request, Partner $partner)
     {
-        $partner = Partner::findOrFail($id);
+        $partner = $this->partnerService->update(
+            $partner,
+            $request->validated()
+        );
 
-        $validated = $request->validate([
-            'name' => 'nullable|array',
-            'logo' => 'sometimes|string|max:255',
-            'website_url' => 'nullable|string|max:255',
-            'sort_order' => 'nullable|integer',
-            'status' => 'nullable|string|max:50',
-            'lat' => 'nullable|numeric',
-            'lng' => 'nullable|numeric',
-        ]);
-
-        $partner->update($validated);
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'تم تحديث الشريك بنجاح',
-            'data' => $partner
-        ], 200);
+        return new PartnerResource($partner);
     }
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        $partner = Partner::findOrFail($id);
 
-        $partner->delete();
+
+    public function destroy(Partner $partner)
+    {
+        $this->partnerService->destroy($partner);
 
         return response()->json([
             'status' => 'success',
             'message' => 'تم حذف الشريك بنجاح'
-        ], 200);
+        ]);
     }
 }

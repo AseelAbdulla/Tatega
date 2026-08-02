@@ -3,96 +3,63 @@
 namespace App\Http\Controllers;
 
 use App\Models\Review;
-use Illuminate\Http\Request;
+use App\Services\ReviewService;
+use App\Http\Resources\ReviewResource;
+use App\Http\Requests\StoreReviewRequest;
+use App\Http\Requests\UpdateReviewRequest;
 
 class ReviewController extends Controller
 {
+
+    public function __construct(
+        protected ReviewService $reviewService
+    ) {}
+
+
     public function index()
-{
-    $reviews = Review::with(['user', 'product'])->get();
+    {
+        return ReviewResource::collection(
+            $this->reviewService->index()
+        );
+    }
 
-    return response()->json([
-        'status' => 'success',
-        'message' => 'تم جلب المراجعات بنجاح',
-        'data' => $reviews
-    ], 200);
 
-}
+    public function store(StoreReviewRequest $request)
+    {
+        $review = $this->reviewService->store(
+            $request->validated()
+        );
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-{
-    $validated = $request->validate([
-        'product_id' => 'required|exists:products,id',
-        'user_id' => 'nullable|exists:users,id',
-        'visitor_name' => 'nullable|string|max:255',
-        'rating' => 'required|integer|min:1|max:5',
-        'comment' => 'nullable|string',
-        'status' => 'nullable|string|max:50',
-    ]);
+        return new ReviewResource($review);
+    }
 
-    $review = Review::create($validated);
 
-    return response()->json([
-        'status' => 'success',
-        'message' => 'تم إضافة المراجعة بنجاح',
-        'data' => $review
-    ], 201);
-}
+    public function show(Review $review)
+    {
+        return new ReviewResource(
+            $this->reviewService->show($review)
+        );
+    }
 
-    /**
-     * Display the specified resource.
-     */
-   public function show($id)
-{
-    $review = Review::with(['user', 'product'])
-                    ->findOrFail($id);
 
-    return response()->json([
-        'status' => 'success',
-        'message' => 'تم جلب المراجعة بنجاح',
-        'data' => $review
-    ], 200);
-}
+    public function update(UpdateReviewRequest $request, Review $review)
+    {
+        $review = $this->reviewService->update(
+            $review,
+            $request->validated()
+        );
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-{
-    $review = Review::findOrFail($id);
+        return new ReviewResource($review);
+    }
 
-    $validated = $request->validate([
-        'product_id' => 'sometimes|exists:products,id',
-        'user_id' => 'nullable|exists:users,id',
-        'visitor_name' => 'nullable|string|max:255',
-        'rating' => 'sometimes|integer|min:1|max:5',
-        'comment' => 'nullable|string',
-        'status' => 'nullable|string|max:50',
-    ]);
 
-    $review->update($validated);
+    public function destroy(Review $review)
+    {
+        $this->reviewService->destroy($review);
 
-    return response()->json([
-        'status' => 'success',
-        'message' => 'تم تحديث المراجعة بنجاح',
-        'data' => $review
-    ], 200);
-}
-    /**
-     * Remove the specified resource from storage.
-     */
-   public function destroy(string $id)
-{
-    $review = Review::findOrFail($id);
-
-    $review->delete();
-
-    return response()->json([
-        'status' => 'success',
-        'message' => 'تم حذف المراجعة بنجاح'
-    ], 200);
-}
+        return response()->json([
+            'status' => 'success',
+            'message' => 'تم حذف المراجعة بنجاح'
+        ]);
+    }
 }

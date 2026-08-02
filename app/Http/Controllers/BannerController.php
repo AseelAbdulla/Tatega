@@ -3,94 +3,72 @@
 namespace App\Http\Controllers;
 
 use App\Models\Banner;
-use Illuminate\Http\Request;
+use App\Services\BannerService;
+use App\Http\Resources\BannerResource;
+use App\Http\Requests\StoreBannerRequest;
+use App\Http\Requests\UpdateBannerRequest;
 
 class BannerController extends Controller
 {
+    public function __construct(
+        protected BannerService $bannerService
+    ) {}
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $banners = Banner::all();
+        $banners = $this->bannerService->index();
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'تم جلب البنرات بنجاح',
-            'data' => $banners
-        ], 200);
+        return BannerResource::collection($banners);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreBannerRequest $request)
     {
-        $validated = $request->validate([
-            'image_path' => 'required|string|max:255',
-            'slogan' => 'nullable|array',
-            'sort_order' => 'nullable|integer',
-            'status' => 'nullable|string|max:50',
-        ]);
+        $banner = $this->bannerService->store(
+            $request->validated()
+        );
 
-        $banner = Banner::create($validated);
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'تم إضافة البنر بنجاح',
-            'data' => $banner
-        ], 201);
+        return new BannerResource($banner);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Banner $banner)
     {
-        $banner = Banner::findOrFail($id);
+        $banner = $this->bannerService->show($banner);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'تم جلب البنر بنجاح',
-            'data' => $banner
-        ], 200);
+        return new BannerResource($banner);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateBannerRequest $request, Banner $banner)
     {
-        $banner = Banner::findOrFail($id);
+        $banner = $this->bannerService->update(
+            $banner,
+            $request->validated()
+        );
 
-        $validated = $request->validate([
-            'image_path' => 'sometimes|string|max:255',
-            'slogan' => 'nullable|array',
-            'sort_order' => 'nullable|integer',
-            'status' => 'nullable|string|max:50',
-        ]);
-
-        $banner->update($validated);
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'تم تحديث البنر بنجاح',
-            'data' => $banner
-        ], 200);
+        return new BannerResource($banner);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Banner $banner)
     {
-        $banner = Banner::findOrFail($id);
-
-        $banner->delete();
+        $this->bannerService->destroy($banner);
 
         return response()->json([
             'status' => 'success',
             'message' => 'تم حذف البنر بنجاح'
-        ], 200);
+        ]);
     }
 }
