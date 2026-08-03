@@ -3,90 +3,63 @@
 namespace App\Http\Controllers;
 
 use App\Models\Setting;
-use Illuminate\Http\Request;
+use App\Services\SettingService;
+use App\Http\Resources\SettingResource;
+use App\Http\Requests\StoreSettingRequest;
+use App\Http\Requests\UpdateSettingRequest;
 
 class SettingController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-   public function index()
-{
-    $settings = Setting::all();
 
-    return response()->json([
-        'status' => 'success',
-        'message' => 'تم جلب الإعدادات بنجاح',
-        'data' => $settings
-    ], 200);
-}
+    public function __construct(
+        protected SettingService $settingService
+    ) {}
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-{
-    $validated = $request->validate([
-        'key' => 'required|string|max:100|unique:settings,key',
-        'value' => 'nullable|array',
-    ]);
 
-    $setting = Setting::create($validated);
+    public function index()
+    {
+        return SettingResource::collection(
+            $this->settingService->index()
+        );
+    }
 
-    return response()->json([
-        'status' => 'success',
-        'message' => 'تم إضافة الإعداد بنجاح',
-        'data' => $setting
-    ], 201);
-}
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-{
-    $setting = Setting::findOrFail($id);
+    public function store(StoreSettingRequest $request)
+    {
+        $setting = $this->settingService->store(
+            $request->validated()
+        );
 
-    return response()->json([
-        'status' => 'success',
-        'message' => 'تم جلب الإعداد بنجاح',
-        'data' => $setting
-    ], 200);
-}
+        return new SettingResource($setting);
+    }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-{
-    $setting = Setting::findOrFail($id);
 
-    $validated = $request->validate([
-        'key' => 'sometimes|string|max:100|unique:settings,key,' . $setting->id,
-        'value' => 'nullable|array',
-    ]);
+    public function show(Setting $setting)
+    {
+        return new SettingResource(
+            $this->settingService->show($setting)
+        );
+    }
 
-    $setting->update($validated);
 
-    return response()->json([
-        'status' => 'success',
-        'message' => 'تم تحديث الإعداد بنجاح',
-        'data' => $setting
-    ], 200);
-}
+    public function update(UpdateSettingRequest $request, Setting $setting)
+    {
+        $setting = $this->settingService->update(
+            $setting,
+            $request->validated()
+        );
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-{
-    $setting = Setting::findOrFail($id);
+        return new SettingResource($setting);
+    }
 
-    $setting->delete();
 
-    return response()->json([
-        'status' => 'success',
-        'message' => 'تم حذف الإعداد بنجاح'
-    ], 200);
-}
+    public function destroy(Setting $setting)
+    {
+        $this->settingService->destroy($setting);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'تم حذف الإعداد بنجاح'
+        ]);
+    }
 }

@@ -3,143 +3,208 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
-use App\Models\Category;
-use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+
+use App\Http\Requests\StoreProductRequest;
+use App\Http\Requests\UpdateProductRequest;
+
+use App\Http\Resources\ProductResource;
+
 
 class ProductController extends Controller
 {
 
-    // عرض المنتجات
+
+    // عرض جميع المنتجات
     public function index()
     {
-        $products = Product::with('category')->get();
 
-        return view('products.index', compact('products'));
+        $products = Product::with('category')
+            ->get();
+
+
+        return ProductResource::collection($products);
+
     }
 
 
-    // صفحة إضافة منتج
-    public function create()
-    {
-        $categories = Category::all();
-
-        return view('products.create', compact('categories'));
-    }
 
 
     // حفظ المنتج
-    public function store(Request $request)
+    public function store(StoreProductRequest $request)
     {
 
-        $request->validate([
-
-            'category_id' => 'required',
-
-            'name_ar' => 'required',
-            'name_en' => 'required',
-
-            'base_price' => 'required|numeric',
-
-            'sku' => 'required|unique:products',
-
-        ]);
+        $data = $request->validated();
 
 
-        Product::create([
 
-            'category_id' => $request->category_id,
+        $product = Product::create([
+
+
+            'category_id' => $data['category_id'],
+
 
             'name' => [
-                'ar' => $request->name_ar,
-                'en' => $request->name_en,
+
+                'ar' => $data['name_ar'],
+
+                'en' => $data['name_en'],
+
             ],
 
-            'slug' => Str::slug($request->name_en),
 
-            'sku' => $request->sku,
+            'slug' => Str::slug($data['name_en']),
 
-            'base_price' => $request->base_price,
 
-            'has_discount' => $request->has_discount ?? false,
+            'sku' => $data['sku'],
 
-            'discount' => $request->discount,
 
-            'stock' => $request->stock,
+            'base_price' => $data['base_price'],
 
-            'low_stock_threshold' => $request->low_stock_threshold,
 
-            'status' => $request->status ?? 'active',
+            'has_discount' =>
+                $data['has_discount'] ?? false,
+
+
+            'discount_price' =>
+                $data['discount_price'] ?? null,
+
+
+            'stock' => $data['stock'],
+
+
+            'low_stock_threshold' =>
+                $data['low_stock_threshold'] ?? 5,
+
+
+            'status' =>
+                $data['status'] ?? 'active',
 
         ]);
 
 
-        return redirect()
-            ->route('products.index')
-            ->with('success','Product added successfully');
+
+        return new ProductResource(
+            $product->load('category')
+        );
 
     }
 
 
 
-    // عرض منتج
+
+    // عرض منتج واحد
     public function show(Product $product)
     {
-        return view('products.show', compact('product'));
+
+        $product->load([
+            'category',
+            'images',
+            'units'
+        ]);
+
+
+        return new ProductResource($product);
+
     }
 
-
-
-    // صفحة تعديل
-    public function edit(Product $product)
-    {
-        $categories = Category::all();
-
-        return view('products.edit', compact('product','categories'));
-    }
 
 
 
     // تحديث المنتج
-    public function update(Request $request, Product $product)
+    public function update(
+        UpdateProductRequest $request,
+        Product $product
+    )
     {
+
+
+        $data = $request->validated();
+
+
 
         $product->update([
 
-            'category_id' => $request->category_id,
+
+            'category_id' =>
+                $data['category_id'],
+
 
             'name' => [
-                'ar'=>$request->name_ar,
-                'en'=>$request->name_en,
+
+                'ar' => $data['name_ar'],
+
+                'en' => $data['name_en'],
+
             ],
 
-            'base_price'=>$request->base_price,
 
-            'has_discount'=>$request->has_discount ?? false,
+            'slug' =>
+                Str::slug($data['name_en']),
 
-            'discount'=>$request->discount,
 
-            'stock'=>$request->stock,
 
-            'status'=>$request->status,
+            'sku' =>
+                $data['sku']
+                ?? $product->sku,
+
+
+
+            'base_price' =>
+                $data['base_price'],
+
+
+
+            'has_discount' =>
+                $data['has_discount'] ?? false,
+
+
+
+            'discount_price' =>
+                $data['discount_price'] ?? null,
+
+
+
+            'stock' =>
+                $data['stock'],
+
+
+
+            'low_stock_threshold' =>
+                $data['low_stock_threshold'] ?? 5,
+
+
+
+            'status' =>
+                $data['status'] ?? 'active',
 
         ]);
 
 
-        return redirect()
-            ->route('products.index');
+
+        return new ProductResource(
+            $product->load('category')
+        );
 
     }
+
 
 
 
     // حذف المنتج
     public function destroy(Product $product)
     {
+
         $product->delete();
 
-        return redirect()
-            ->route('products.index');
+
+        return response()->json([
+
+            'message' =>
+                'Product deleted successfully'
+
+        ]);
+
     }
 
 }

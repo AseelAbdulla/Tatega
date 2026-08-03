@@ -3,8 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
-use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
+
+use App\Http\Requests\StoreCategoryRequest;
+use App\Http\Requests\UpdateCategoryRequest;
+
+use App\Http\Resources\CategoryResource;
+
 
 class CategoryController extends Controller
 {
@@ -14,115 +20,164 @@ class CategoryController extends Controller
     {
         $categories = Category::all();
 
-        return view('categories.index', compact('categories'));
+        return CategoryResource::collection($categories);
     }
 
-
-    // صفحة إضافة تصنيف
-    public function create()
-    {
-        return view('categories.create');
-    }
 
 
     // حفظ التصنيف
-    public function store(Request $request)
+    public function store(StoreCategoryRequest $request)
     {
-        $request->validate([
-            'name' => 'required',
-            'image' => 'nullable|image',
-        ]);
+
+        $data = $request->validated();
 
 
         $imagePath = null;
 
+
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')
+
+            $imagePath = $request
+                ->file('image')
                 ->store('categories', 'public');
+
         }
 
 
-        Category::create([
+
+        $category = Category::create([
+
             'name' => [
-                'ar' => $request->name_ar,
-                'en' => $request->name_en,
+
+                'ar' => $data['name_ar'],
+
+                'en' => $data['name_en'],
+
             ],
 
-            'slug' => Str::slug($request->name_en),
+
+            'slug' => Str::slug($data['name_en']),
+
 
             'image' => $imagePath,
+
         ]);
 
 
-        return redirect()
-            ->route('categories.index')
-            ->with('success', 'Category added successfully');
+
+        return new CategoryResource($category);
+
     }
+
 
 
 
     // عرض تصنيف واحد
     public function show(Category $category)
     {
-        return view('categories.show', compact('category'));
+
+        return new CategoryResource($category);
+
     }
 
-
-
-    // صفحة التعديل
-    public function edit(Category $category)
-    {
-        return view('categories.edit', compact('category'));
-    }
 
 
 
     // تحديث التصنيف
-    public function update(Request $request, Category $category)
+    public function update(
+        UpdateCategoryRequest $request,
+        Category $category
+    )
     {
 
-        $request->validate([
-            'name' => 'required',
-            'image' => 'nullable|image',
-        ]);
+        $data = $request->validated();
+
 
 
         $imagePath = $category->image;
 
 
+
         if ($request->hasFile('image')) {
 
-            $imagePath = $request->file('image')
+
+            if (
+                $category->image &&
+                Storage::disk('public')
+                    ->exists($category->image)
+            ) {
+
+                Storage::disk('public')
+                    ->delete($category->image);
+
+            }
+
+
+
+            $imagePath = $request
+                ->file('image')
                 ->store('categories', 'public');
+
         }
+
 
 
         $category->update([
 
             'name' => [
-                'ar' => $request->name_ar,
-                'en' => $request->name_en,
+
+                'ar' => $data['name_ar'],
+
+                'en' => $data['name_en'],
+
             ],
 
-            'slug' => Str::slug($request->name_en),
+
+            'slug' => Str::slug($data['name_en']),
+
 
             'image' => $imagePath,
 
         ]);
 
 
-        return redirect()
-            ->route('categories.index');
+
+        return new CategoryResource($category);
+
     }
+
+
 
 
 
     // حذف التصنيف
     public function destroy(Category $category)
     {
+
+
+        if (
+            $category->image &&
+            Storage::disk('public')
+                ->exists($category->image)
+        ) {
+
+            Storage::disk('public')
+                ->delete($category->image);
+
+        }
+
+
+
         $category->delete();
 
-        return redirect()
-            ->route('categories.index');
+
+
+        return response()->json([
+
+            'message' => 'Category deleted successfully'
+
+        ]);
+
     }
+
 }
