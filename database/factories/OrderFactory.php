@@ -41,6 +41,16 @@ class OrderFactory extends Factory
 
             'address_id' => Address::factory(),
 
+            'shipping_building' =>  fake()->words(2, true),
+
+            'shipping_street' =>  fake()->words(2, true),
+
+            'shipping_region' =>  fake()->words(2, true),
+
+            'shipping_city' =>  fake()->words(2, true),
+
+            'shipping_country' =>  fake()->words(2, true),
+
             'notes' => fake()->optional()->sentence(),
 
             'subtotal' => fake()->randomFloat(2, 50, 1000),

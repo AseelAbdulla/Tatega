@@ -31,9 +31,9 @@ class OrderService
                 $payment_method = PaymentMethod::from($data['payment_method']);
 
             /*
-             |-------------------------------------------
-             | جلب سلة المستخدم
-             |-------------------------------------------
+            |-------------------------------------------
+            | جلب سلة المستخدم
+            |-------------------------------------------
              */
 
             $cart = Cart::where('user_id', $user->id)
@@ -64,13 +64,11 @@ class OrderService
             if (!empty($data['address_id'])) {
 
 
-                $addressExists = Address::where('id', $data['address_id'])
+                $address = Address::where('id', $data['address_id'])
                     ->where('user_id', $user->id)
-                    ->exists();
+                    ->first();
 
-
-                if (!$addressExists) {
-
+                if (!$address) {
                     abort(
                         403,
                         'هذا العنوان لا يخص المستخدم.'
@@ -108,15 +106,15 @@ class OrderService
 
 
             /*
-|-------------------------------------------
-| رفع صورة الإيصال
-|-------------------------------------------
-*/
+            |-------------------------------------------
+            | رفع صورة الإيصال
+            |-------------------------------------------
+            */
 
             $receiptPath = null;
 
             if (
-                $data['payment_method'] === 'wallet' && $receipt
+                $payment_method === PaymentMethod::WALLET && $receipt
             ) {
 
                 $receiptPath = $receipt->store(
@@ -126,23 +124,30 @@ class OrderService
             }
 
             /*
-             |-------------------------------------------
-             | إنشاء الطلب
-             |-------------------------------------------
+            |-------------------------------------------
+            | إنشاء الطلب
+            |-------------------------------------------
              */
 
             $order = Order::create([
 
                 'user_id' => $user->id,
 
-                'address_id' =>
-                $data['address_id'] ?? null,
+                'address_id' => $data['address_id'] ?? null,
+
+                'address_id' => $data['address_id'] ?? null,
+
+                'shipping_country' => $address->country,
+                'shipping_city' => $address->city,
+                'shipping_region' => $address->region,
+                'shipping_street' => $address->street,
+                'shipping_building' => $address->building,
 
                 'payment_method' => $payment_method,
                 'payment_status' => $payment_method === PaymentMethod::WALLET
                     ? PaymentStatus::PENDING_REVIEW
                     : PaymentStatus::PENDING,
-                    'payment_receiot' => $receiptPath,
+                    'payment_recepit' => $receiptPath,
 
 
                 'customer_name' =>
@@ -182,10 +187,10 @@ class OrderService
 
 
             /*
-             |-------------------------------------------
-             | إنشاء تفاصيل الطلب
-             | حفظ Snapshot
-             |-------------------------------------------
+            |-------------------------------------------
+            | إنشاء تفاصيل الطلب
+            | حفظ Snapshot
+            |-------------------------------------------
              */
 
             foreach ($cart->details as $item) {
@@ -211,17 +216,11 @@ class OrderService
                     'product_name_snapshot' =>
                     $item->product->name,
 
-
-
                     'unit_name_snapshot' =>
                     $item->unit->unit_name,
 
-
-
                     'quantity' =>
                     $item->quantity,
-
-
 
                     /*
                      * السعر وقت الشراء
@@ -230,12 +229,9 @@ class OrderService
                     'unit_price' =>
                     $item->price,
 
-
-
                     'total_price' =>
                     $item->price *
                         $item->quantity,
-
 
                 ]);
             }
@@ -243,9 +239,9 @@ class OrderService
 
 
             /*
-             |-------------------------------------------
-             | تفريغ السلة
-             |-------------------------------------------
+            |-------------------------------------------
+            | تفريغ السلة
+            |-------------------------------------------
              */
 
             $cart->details()->delete();
@@ -273,7 +269,6 @@ class OrderService
             ->latest()
             ->get();
     }
-
 
 
     /**

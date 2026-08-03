@@ -30,13 +30,13 @@ class OrderResource extends JsonResource
             'customer' => [
 
                 'name' =>
-                    $this->customer_name,
+                $this->customer_name,
 
                 'phone' =>
-                    $this->customer_phone,
+                $this->customer_phone,
 
                 'email' =>
-                    $this->customer_email,
+                $this->customer_email,
 
             ],
 
@@ -52,16 +52,27 @@ class OrderResource extends JsonResource
                     return [
 
                         'id' =>
-                            $this->address->id,
+                        $this->address->id,
 
-                        'title' =>
-                            $this->address->title,
+                        'country' =>
+                        $this->address->country,
 
-                        'address' =>
-                            $this->address->address,
+                        'city' =>
+                        $this->address->city,
+
+                        'region' =>
+                        $this->address->region,
+
+                        'street' =>
+                        $this->address->street,
+
+                        'building' =>
+                        $this->address->building,
+
+                        'notes' =>
+                        $this->address->notes,
 
                     ];
-
                 }
             ),
 
@@ -72,9 +83,9 @@ class OrderResource extends JsonResource
              | تفاصيل المنتجات
              */
             'items' =>
-                OrderDetailResource::collection(
-                    $this->whenLoaded('details')
-                ),
+            OrderDetailResource::collection(
+                $this->whenLoaded('details')
+            ),
 
 
 
@@ -85,19 +96,19 @@ class OrderResource extends JsonResource
             'pricing' => [
 
                 'subtotal' =>
-                    (float) $this->subtotal,
+                (float) $this->subtotal,
 
 
                 'discount' =>
-                    (float) $this->discount,
+                (float) $this->discount,
 
 
                 'tax' =>
-                    (float) $this->tax,
+                (float) $this->tax,
 
 
                 'total' =>
-                    (float) $this->total_price,
+                (float) $this->total_price,
 
             ],
 
@@ -105,19 +116,19 @@ class OrderResource extends JsonResource
 
 
             'notes' =>
-                $this->notes,
+            $this->notes,
 
 
             'rejection_reason' =>
-                $this->rejection_reason,
+            $this->rejection_reason,
 
 
 
             'created_at' =>
-                $this->created_at,
+            $this->created_at,
 
             'updated_at' =>
-                $this->updated_at,
+            $this->updated_at,
 
         ];
     }
