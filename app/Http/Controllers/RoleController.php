@@ -2,57 +2,69 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\Role;
-use Illuminate\Support\Facades\Validator;
+use App\Http\Requests\StoreRoleRequest;
+use App\Http\Requests\UpdateRoleRequest;
+use App\Services\RoleService;
+
 
 class RoleController extends Controller
 {
-    /**
-     * Display a listing of roles.
-     */
-    public function index()
-    {
-        $roles = Role::with('users:id,name,email')->get();
 
-        return response()->json([
-            'status' => true,
-            'data' => $roles
-        ]);
+    protected $roleService;
+
+
+
+    public function __construct(RoleService $roleService)
+    {
+        $this->roleService = $roleService;
     }
 
 
+
+
+
+
     /**
-     * Store a newly created role.
+     * Display all roles
      */
-    public function store(Request $request)
+    public function index()
     {
-        $validator = Validator::make($request->all(), [
 
-            'name' => 'required|string|max:100|unique:roles,name',
-
-            'display_name' => 'required|array'
-
-        ]);
+        $roles = $this->roleService->getAllRoles();
 
 
-        if ($validator->fails()) {
 
-            return response()->json([
-                'errors' => $validator->errors()
-            ], 422);
+        return response()->json([
 
-        }
+            'status' => true,
 
-
-        $role = Role::create([
-
-            'name' => $request->name,
-
-            'display_name' => $request->display_name
+            'data' => $roles
 
         ]);
+
+    }
+
+
+
+
+
+
+
+
+
+    /**
+     * Store new role
+     */
+    public function store(StoreRoleRequest $request)
+    {
+
+
+        $role = $this->roleService->createRole(
+
+            $request->validated()
+
+        );
+
 
 
         return response()->json([
@@ -61,129 +73,146 @@ class RoleController extends Controller
 
             'data' => $role
 
-        ], 201);
+        ],201);
+
     }
 
 
 
+
+
+
+
+
+
     /**
-     * Display a specific role.
+     * Display specific role
      */
     public function show(string $id)
     {
-        $role = Role::with('users:id,name,email')
-                    ->find($id);
+
+        $role = $this->roleService->getRoleById($id);
 
 
-        if (!$role) {
+
+        if(!$role)
+        {
 
             return response()->json([
-                'message' => 'Role not found'
-            ], 404);
+
+                'message'=>'Role not found'
+
+            ],404);
 
         }
 
 
+
+
         return response()->json([
 
-            'status' => true,
+            'status'=>true,
 
-            'data' => $role
+            'data'=>$role
 
         ]);
+
     }
 
 
 
+
+
+
+
+
+
     /**
-     * Update role.
+     * Update role
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateRoleRequest $request,string $id)
     {
 
-        $role = Role::find($id);
+
+        $role = $this->roleService->updateRole(
+
+            $id,
+
+            $request->validated()
+
+        );
 
 
-        if (!$role) {
+
+
+
+        if(!$role)
+        {
 
             return response()->json([
-                'message' => 'Role not found'
-            ], 404);
+
+                'message'=>'Role not found'
+
+            ],404);
 
         }
 
 
-        $validator = Validator::make($request->all(), [
-
-            'name' => 'nullable|string|max:100|unique:roles,name,' . $id,
-
-            'display_name' => 'nullable|array'
-
-        ]);
-
-
-        if ($validator->fails()) {
-
-            return response()->json([
-                'errors' => $validator->errors()
-            ], 422);
-
-        }
-
-
-
-        $role->update([
-
-            'name' => $request->name ?? $role->name,
-
-            'display_name' => $request->display_name ?? $role->display_name
-
-        ]);
 
 
 
         return response()->json([
 
-            'message' => 'Role updated successfully',
+            'message'=>'Role updated successfully',
 
-            'data' => $role
+            'data'=>$role
 
         ]);
+
     }
 
 
 
+
+
+
+
+
+
     /**
-     * Delete role.
+     * Delete role
      */
     public function destroy(string $id)
     {
 
-        $role = Role::find($id);
+        $deleted = $this->roleService->deleteRole($id);
 
 
-        if (!$role) {
+
+
+
+        if(!$deleted)
+        {
 
             return response()->json([
-                'message' => 'Role not found'
-            ], 404);
+
+                'message'=>'Role not found'
+
+            ],404);
 
         }
 
 
-        // حذف العلاقات من جدول role_user
-        $role->users()->detach();
-
-
-        // حذف الدور
-        $role->delete();
 
 
 
         return response()->json([
 
-            'message' => 'Role deleted successfully'
+            'message'=>'Role deleted successfully'
 
         ]);
+
     }
+
+
 }
