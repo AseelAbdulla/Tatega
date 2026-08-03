@@ -2,12 +2,17 @@
 
 namespace App\Services;
 
+use App\Enums\PaymentMethod;
+use App\Enums\PaymentStatus;
 use App\Models\User;
 use App\Models\Order;
 use App\Models\Cart;
 use App\Models\Address;
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests\StoreOrderRequest;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+
 
 class OrderService
 {
@@ -16,11 +21,14 @@ class OrderService
      */
     public function createOrder(
         User $user,
-        array $data
+        array $data,
+        ?UploadedFile $receipt = null
     ): Order {
 
-        return DB::transaction(function () use ($user, $data) {
 
+        return DB::transaction(function () use ($user, $data, $receipt) {
+
+                $payment_method = PaymentMethod::from($data['payment_method']);
 
             /*
              |-------------------------------------------
@@ -99,6 +107,23 @@ class OrderService
                 + $tax;
 
 
+            /*
+|-------------------------------------------
+| رفع صورة الإيصال
+|-------------------------------------------
+*/
+
+            $receiptPath = null;
+
+            if (
+                $data['payment_method'] === 'wallet' && $receipt
+            ) {
+
+                $receiptPath = $receipt->store(
+                    'payment-receipts',
+                    'public'
+                );
+            }
 
             /*
              |-------------------------------------------
@@ -113,10 +138,11 @@ class OrderService
                 'address_id' =>
                 $data['address_id'] ?? null,
 
-
-                'status' => 'pending',
-
-                'order_type' => 'normal',
+                'payment_method' => $payment_method,
+                'payment_status' => $payment_method === PaymentMethod::WALLET
+                    ? PaymentStatus::PENDING_REVIEW
+                    : PaymentStatus::PENDING,
+                    'payment_receiot' => $receiptPath,
 
 
                 'customer_name' =>
@@ -183,16 +209,12 @@ class OrderService
                      */
 
                     'product_name_snapshot' =>
-                    json_encode(
-                        $item->product->name
-                    ),
+                    $item->product->name,
 
 
 
                     'unit_name_snapshot' =>
-                    json_encode(
-                        $item->unit->unit_name
-                    ),
+                    $item->unit->unit_name,
 
 
 
@@ -232,7 +254,9 @@ class OrderService
 
             return $order->load([
                 'details',
-                'address'
+                'address',
+                'details.product',
+                'details.unit'
             ]);
         });
     }

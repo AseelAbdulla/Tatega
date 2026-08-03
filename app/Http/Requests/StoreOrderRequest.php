@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreOrderRequest extends FormRequest
 {
@@ -54,6 +55,27 @@ class StoreOrderRequest extends FormRequest
                 'string'
             ],
 
+            /*
+             |-------------------------------------------
+             | بيانات الدفع
+             |-------------------------------------------
+             */
+
+            'payment_method' => [
+                'required',
+                Rule::in([
+                    'cash_on_delivery',
+                    'wallet',
+                ]),
+            ],
+
+            'payment_receipt' => [
+                'nullable',
+                'required_if:payment_method,wallet',
+                'image',
+                'mimes:jpg,jpeg,png,webp',
+                'max:2048',
+            ],
         ];
     }
 

@@ -35,6 +35,10 @@ return new class extends Migration
             $table->decimal('tax', 12, 2)->default(0);
             $table->decimal('total_price', 12, 2);
 
+            $table->string('payment_method', 50); //طريقة لدفع
+            $table->string('payment_status', 30); //حالة الدفع
+            $table->string('payment_recepit')->nullable(); //رفع الايصال
+
             $table->text('rejection_reason')->nullable();
 
             $table->timestamps();
