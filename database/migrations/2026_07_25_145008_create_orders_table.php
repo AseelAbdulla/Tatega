@@ -23,6 +23,12 @@ return new class extends Migration
             $table->string('customer_phone', 50);
             $table->string('customer_email', 255);
 
+            $table->string('shipping_country', 100);
+            $table->string('shipping_city', 100);
+            $table->string('shipping_region', 100);
+            $table->string('shipping_street', 255);
+            $table->string('shipping_building', 100);
+
             $table->foreignId('address_id')
                 ->nullable()
                 ->constrained('addresses')

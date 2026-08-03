@@ -1,149 +1,135 @@
 <?php
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+// Breeze Authentication Routes
+require __DIR__ . '/auth.php';
+
+// Controllers
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\AddressController;
+use App\Http\Controllers\BannerController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CartItemController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\FeatureController;
 use App\Http\Controllers\InternalNotificationController;
 use App\Http\Controllers\OrderController;
-
-use App\Http\Controllers\ReviewController;
-use App\Http\Controllers\BannerController;
-use App\Http\Controllers\FeatureController;
 use App\Http\Controllers\PartnerController;
-use App\Http\Controllers\SettingController;
-
-
-// Controllers الخاصة بك
-use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductImageController;
 use App\Http\Controllers\ProductUnitController;
+use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\SettingController;
+
+/*
+|--------------------------------------------------------------------------
+| Public Routes
+|--------------------------------------------------------------------------
+| يمكن لأي زائر الوصول إليها
+*/
+
+Route::apiResource('categories', CategoryController::class);
+
+Route::apiResource('products', ProductController::class);
+
+Route::apiResource('product-images', ProductImageController::class);
+
+Route::apiResource('product-units', ProductUnitController::class);
+
+Route::apiResource('banners', BannerController::class);
+
+Route::apiResource('features', FeatureController::class);
+
+Route::apiResource('partners', PartnerController::class);
+
+Route::apiResource('settings', SettingController::class);
+
+Route::apiResource('reviews', ReviewController::class);
 
 
+/*
+|--------------------------------------------------------------------------
+| Protected Routes (Sanctum)
+|--------------------------------------------------------------------------
+| تتطلب تسجيل الدخول
+*/
 
-Route::apiResource('users', UserController::class);
+Route::middleware('auth:sanctum')->group(function () {
 
-Route::apiResource('roles', RoleController::class);
+    /*
+    |--------------------------------------------------------------------------
+    | Current User
+    |--------------------------------------------------------------------------
+    */
 
-Route::apiResource('addresses', AddressController::class);
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
 
-Route::apiResource(
-    'internal-notifications',
-    InternalNotificationController::class
-);
+    /*
+    |--------------------------------------------------------------------------
+    | Users & Roles
+    |--------------------------------------------------------------------------
+    */
 
+    Route::apiResource('users', UserController::class);
 
+    Route::apiResource('roles', RoleController::class);
 
-// =============================
-// Routes الخاصة بك
-// =============================
+    /*
+    |--------------------------------------------------------------------------
+    | Addresses
+    |--------------------------------------------------------------------------
+    */
 
+    Route::apiResource('addresses', AddressController::class);
 
-Route::apiResource(
-    'categories',
-    CategoryController::class
-);
+    /*
+    |--------------------------------------------------------------------------
+    | Internal Notifications
+    |--------------------------------------------------------------------------
+    */
 
+    Route::apiResource(
+        'internal-notifications',
+        InternalNotificationController::class
+    );
 
-Route::apiResource(
-    'products',
-    ProductController::class
-);
+    /*
+    |--------------------------------------------------------------------------
+    | Cart
+    |--------------------------------------------------------------------------
+    */
 
+    Route::get('/cart', [CartController::class, 'index']);
 
-Route::apiResource(
-    'product-images',
-    ProductImageController::class
-);
+    Route::delete('/cart/clear', [CartController::class, 'clear']);
 
+    Route::apiResource('cart/items', CartItemController::class)
+        ->only([
+            'store',
+            'update',
+            'destroy',
+        ]);
 
-Route::apiResource(
-    'product-units',
-    ProductUnitController::class
-);
+    /*
+    |--------------------------------------------------------------------------
+    | Orders
+    |--------------------------------------------------------------------------
+    */
 
+    Route::apiResource('orders', OrderController::class)
+        ->only([
+            'index',
+            'store',
+            'show',
+        ]);
 
-
-
-// Route::middleware('auth:sanctum')->group(function () {
-
-
-//  routes for cart item
-
-Route::apiResource('cart/items', CartItemController::class)
-    ->only([
-        'store',
-        'update',
-        'destroy',
-    ]);
-
-
-
-// cart routes
-
-Route::get(
-    '/cart',
-    [CartController::class, 'index']
-);
-
-
-Route::delete(
-    '/cart/clear',
-    [CartController::class, 'clear']
-);
-
-
-
-// order routes
-
-Route::apiResource('orders', OrderController::class)
-    ->only([
-        'store',
-        'show',
-        'index',
-    ]);
-
-
-
-// cancel order
-
-Route::get(
-    '/orders/{order}/cancel',
-    [OrderController::class, 'cancel']
-);
-
-
-
-
-Route::apiResource(
-    'reviews',
-    ReviewController::class
-);
-
-Route::apiResource(
-    'banners',
-    BannerController::class
-);
-
-Route::apiResource(
-    'features',
-    FeatureController::class
-);
-
-Route::apiResource(
-    'partners',
-    PartnerController::class
-);
-
-Route::apiResource(
-    'settings',
-    SettingController::class
-);
-
-// sync update
-
-// });
+    Route::patch(
+        '/orders/{order}/cancel',
+        [OrderController::class, 'cancel']
+    );
+});
