@@ -23,35 +23,34 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): Response
     {
+        // 1. أضفنا التحقق (Validation) لحقول الهاتف والحالة لضمان وصولها بشكل سليم ومنع الأخطاء
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'phone' => ['required', 'string', 'max:255'], // تم إضافة التحقق لحقل الهاتف
+            'status' => ['nullable', 'string'], // تم إضافة التحقق لحقل الحالة
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
+        // 2. قمنا بتصحيح إنشاء المستخدم واستخدام القيمة الصحيحة للحالة مع وضع قيمة افتراضية 'active'
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'phone' => $request->phone,
-            'status' => $request->active,
+            'status' => $request->status ?? 'active', // تم تعديله من active$ إلى الحالة الصحيحة مع قيمة افتراضية لمنع خطأ قاعدة البيانات
             'password' => Hash::make($request->string('password')),
         ]);
+
+        // 3. إرسال البريد الإلكتروني للترحيب بالمستخدم مرة واحدة فقط
         Mail::to($user->email)->send(new WelcomeUserMail());
 
+        // 4. تفعيل حدث التسجيل
         event(new Registered($user));
-        $user = User::create([
-    // بيانات المستخدم
-]);
 
-// إرسال رسالة الترحيب الخاصة بك
-Mail::to($user->email)->send(new WelcomeUserMail());
-
-// حدث Breeze (للـ Email Verification إذا كان مفعّل)
-event(new Registered($user));
-
-Auth::login($user);
-
+        // 5. تسجيل دخول المستخدم بعد التسجيل
         Auth::login($user);
+
+        // 6. إزالة التكرار العشوائي والأكواد الميتة التي كانت مكررة في أسفل الدالة وحذفنا الكود الزائد
 
         return response()->noContent();
     }

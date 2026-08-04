@@ -2,9 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
-// Breeze Authentication Routes
-require __DIR__ . '/auth.php';
+use App\Http\Controllers\Api\AuthController;
 
 // Controllers
 use App\Http\Controllers\UserController;
@@ -26,9 +24,19 @@ use App\Http\Controllers\SettingController;
 
 /*
 |--------------------------------------------------------------------------
-| Public Routes
+| Public API Routes (Authentication)
 |--------------------------------------------------------------------------
-| يمكن لأي زائر الوصول إليها
+| مسارات عامة للتسجيل وتسجيل الدخول وإرجاع التوكن
+*/
+
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
+
+/*
+|--------------------------------------------------------------------------
+| Public Resource Routes
+|--------------------------------------------------------------------------
+| يمكن لأي زائر الوصول إليها دون الحاجة لتسجيل دخول
 */
 
 Route::apiResource('categories', CategoryController::class);
@@ -54,10 +62,18 @@ Route::apiResource('reviews', ReviewController::class);
 |--------------------------------------------------------------------------
 | Protected Routes (Sanctum)
 |--------------------------------------------------------------------------
-| تتطلب تسجيل الدخول
+| تتطلب إرسال Bearer Token في الهيدر للوصول إليها
 */
 
 Route::middleware('auth:sanctum')->group(function () {
+
+    /*
+    |--------------------------------------------------------------------------
+    | Authentication Management
+    |--------------------------------------------------------------------------
+    */
+
+    Route::post('/logout', [AuthController::class, 'logout']);
 
     /*
     |--------------------------------------------------------------------------
