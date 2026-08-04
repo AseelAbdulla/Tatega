@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Auth;
 
+use Illuminate\Support\Facades\Mail;
+use App\Mail\WelcomeUserMail;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
@@ -35,8 +37,20 @@ class RegisteredUserController extends Controller
             'status' => 'active',
             'password' => Hash::make($request->string('password')),
         ]);
+        Mail::to($user->email)->send(new WelcomeUserMail());
 
         event(new Registered($user));
+        $user = User::create([
+    // بيانات المستخدم
+]);
+
+// إرسال رسالة الترحيب الخاصة بك
+Mail::to($user->email)->send(new WelcomeUserMail());
+
+// حدث Breeze (للـ Email Verification إذا كان مفعّل)
+event(new Registered($user));
+
+Auth::login($user);
 
         Auth::login($user);
 
