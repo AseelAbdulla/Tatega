@@ -19,14 +19,14 @@ class CartService
     public function getCurrentCart(User $user): Cart
     {
         return Cart::firstOrCreate([
-            'user_id' => $user->id 
+            'user_id' => $user->id
         ])
-        ->load([
-            'details.product.images:id,product_id,image_path',
-            'details.product.category:id,name',
-            'details.product:id,category_id,name,sku',
-            'details.unit:id,unit_name'
-        ]);
+            ->load([
+                'details.product.images:id,product_id,image_path',
+                'details.product.category:id,name',
+                'details.product:id,category_id,name,sku',
+                'details.unit:id,unit_name'
+            ]);
     }
 
 
@@ -91,8 +91,6 @@ class CartService
                 $cartDetail->update([
                     'quantity' => $newQuantity
                 ]);
-
-
             } else {
 
 
@@ -116,15 +114,12 @@ class CartService
                     'quantity' => $data['quantity']
 
                 ]);
-
             }
 
 
 
             return $this->loadCart($cart);
-
         });
-
     }
 
 
@@ -167,7 +162,6 @@ class CartService
         return $this->loadCart(
             $cartDetail->cart
         );
-
     }
 
 
@@ -189,7 +183,6 @@ class CartService
 
 
         $cartDetail->delete();
-
     }
 
 
@@ -210,11 +203,8 @@ class CartService
         if ($cart) {
 
             $cart->details()->delete();
-
         }
-
     }
-
 
 
 
@@ -226,13 +216,12 @@ class CartService
         CartDetail $cartDetail
     ): void {
 
-
+        //تحميل علاقة السله ان لم تكن محمله
+        $cartDetail->loadMissing('cart');
         if ($cartDetail->cart->user_id !== $user->id) {
 
             abort(403, 'غير مصرح لك بهذا الإجراء.');
-
         }
-
     }
 
 
@@ -253,9 +242,7 @@ class CartService
                 422,
                 'الكمية المطلوبة غير متوفرة في المخزون.'
             );
-
         }
-
     }
 
 
@@ -272,8 +259,5 @@ class CartService
             'details.product.category',
             'details.unit'
         ]);
-
     }
-
 }
-

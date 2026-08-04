@@ -29,6 +29,7 @@ class CategoryController extends Controller
     public function store(StoreCategoryRequest $request)
     {
 
+        // dd($request->all());
         $data = $request->validated();
 
 
@@ -89,6 +90,7 @@ class CategoryController extends Controller
         Category $category
     )
     {
+        // return response()->json(['message' => 'arive successfully']);
 
         $data = $request->validated();
 
