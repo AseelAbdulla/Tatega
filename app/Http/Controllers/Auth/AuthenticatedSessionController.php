@@ -3,41 +3,79 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
-use Symfony\Component\HttpFoundation\JsonResponse;
+use Illuminate\Support\Facades\Hash;
+use App\Models\User;
 
 class AuthenticatedSessionController extends Controller
 {
     /**
-     * Handle an incoming authentication request.
+     * Handle login request (API Sanctum)
      */
-    public function store(LoginRequest $request): JsonResponse
+    public function store(Request $request)
     {
-        $request->authenticate();
-        $user = $request->user(); //ﺟﺪﻳﺪ Token إﺻﺪار 
+        // Validation
+        $request->validate([
+            'email' => [
+                'required',
+                'email'
+            ],
 
-        $token = $user->createToken('auth_token')->plainTextToken;
-        return response()->json([
-            'message' => 'Logged in successfully',
-            'access_token' => $token,
-            'token_type'   => 'Bearer',
-            'user' => $user
+            'password' => [
+                'required'
+            ],
         ]);
+
+
+        // البحث عن المستخدم
+        $user = User::where('email', $request->email)->first();
+
+
+        // التحقق من البيانات
+        if (!$user || !Hash::check($request->password, $user->password)) {
+
+            return response()->json([
+                'message' => 'Invalid email or password'
+            ], 401);
+
+        }
+
+
+        // إنشاء Token Sanctum
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+
+        return response()->json([
+
+            'message' => 'Logged in successfully',
+
+            'access_token' => $token,
+
+            'token_type' => 'Bearer',
+
+            'user' => $user
+
+        ], 200);
     }
+
+
+
     /**
-     * Destroy an authenticated session.
+     * Logout API
      */
-    public function destroy(Request $request): Response
+    public function destroy(Request $request)
     {
-        Auth::guard('web')->logout();
 
-        $request->session()->invalidate();
+        // حذف التوكن الحالي
+        $request->user()->currentAccessToken()->delete();
 
-        $request->session()->regenerateToken();
 
-        return response()->noContent();
+        return response()->json([
+
+            'message' => 'Logged out successfully'
+
+        ], 200);
+
     }
 }

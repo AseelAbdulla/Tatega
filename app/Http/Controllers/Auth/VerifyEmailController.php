@@ -3,29 +3,46 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Auth\Events\Verified;
-use Illuminate\Foundation\Auth\EmailVerificationRequest;
-use Illuminate\Http\RedirectResponse;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\URL;
 
 class VerifyEmailController extends Controller
 {
-    /**
-     * Mark the authenticated user's email address as verified.
-     */
-    public function __invoke(EmailVerificationRequest $request): RedirectResponse
+    public function __invoke(Request $request, $id, $hash)
     {
-        if ($request->user()->hasVerifiedEmail()) {
-            return redirect()->intended(
-                config('app.frontend_url').'/dashboard?verified=1'
-            );
+        // التحقق من توقيع الرابط
+        if (! URL::hasValidSignature($request)) {
+            return response()->json([
+                'message' => 'Invalid or expired verification link'
+            ], 403);
         }
 
-        if ($request->user()->markEmailAsVerified()) {
-            event(new Verified($request->user()));
+
+        // جلب المستخدم من id الموجود في الرابط
+        $user = User::findOrFail($id);
+
+
+        // مقارنة hash البريد
+        if (! hash_equals(
+            sha1($user->getEmailForVerification()),
+            $hash
+        )) {
+            return response()->json([
+                'message' => 'Invalid verification hash'
+            ], 403);
         }
 
-        return redirect()->intended(
-            config('app.frontend_url').'/dashboard?verified=1'
-        );
+
+        // تحديث البريد
+        if (! $user->hasVerifiedEmail()) {
+            $user->markEmailAsVerified();
+        }
+
+
+        return response()->json([
+            'message' => 'Email verified successfully',
+            'email_verified_at' => $user->email_verified_at
+        ]);
     }
 }
