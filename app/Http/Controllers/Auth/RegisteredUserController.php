@@ -2,58 +2,80 @@
 
 namespace App\Http\Controllers\Auth;
 
-use Illuminate\Support\Facades\Mail;
-use App\Mail\WelcomeUserMail;
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Validation\Rules;
-use Illuminate\Validation\ValidationException;
+
 
 class RegisteredUserController extends Controller
 {
-    /**
-     * Handle an incoming registration request.
-     *
-     * @throws ValidationException
-     */
-    public function store(Request $request): Response
+
+    public function store(Request $request): JsonResponse
     {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'phone' => ['required', 'string', 'max:50'],
+
+        $validated = $request->validate([
+
+            'name' => [
+                'required',
+                'string',
+                'max:255'
+            ],
+
+            'email' => [
+                'required',
+                'email',
+                'unique:users,email'
+            ],
+
+            'phone' => [
+                'required',
+                'unique:users,phone'
+            ],
+
+            'password' => [
+                'required',
+                'confirmed',
+                Rules\Password::defaults()
+            ],
+
         ]);
+
+
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'status' => 'active',
-            'password' => Hash::make($request->string('password')),
-        ]);
-        Mail::to($user->email)->send(new WelcomeUserMail());
 
+            'name'=>$validated['name'],
+
+            'email'=>$validated['email'],
+
+            'phone'=>$validated['phone'],
+
+            'status'=>'active',
+
+            'password'=>Hash::make($validated['password']),
+
+        ]);
+
+
+
+        // إرسال إيميل التحقق
         event(new Registered($user));
-        $user = User::create([
-    // بيانات المستخدم
-]);
 
-// إرسال رسالة الترحيب الخاصة بك
-Mail::to($user->email)->send(new WelcomeUserMail());
 
-// حدث Breeze (للـ Email Verification إذا كان مفعّل)
-event(new Registered($user));
 
-Auth::login($user);
+        return response()->json([
 
-        Auth::login($user);
+            'message'=>'Registration successful. Check your email for verification link.',
 
-        return response()->noContent();
+            'user'=>$user
+
+        ],201);
+
+
     }
+
 }

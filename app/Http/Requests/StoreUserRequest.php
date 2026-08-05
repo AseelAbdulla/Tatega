@@ -4,51 +4,44 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateAddressRequest extends FormRequest
+class StoreUserRequest extends FormRequest
 {
-
+    /**
+     * Determine if the user is authorized to make this request.
+     */
     public function authorize(): bool
     {
         return true;
     }
 
-
-
+    /**
+     * Get the validation rules.
+     */
     public function rules(): array
     {
         return [
-
-            'country' => 'nullable|string|max:100',
-
-            'city' => 'nullable|string|max:100',
-
-            'region' => 'nullable|string|max:100',
-
-            'street' => 'nullable|string|max:255',
-
-            'building' => 'nullable|string|max:100',
-
-            'notes' => 'nullable|string'
-
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:8|confirmed',
+            'phone' => 'nullable|string|max:20',
+            'role_id' => 'nullable|exists:roles,id',
         ];
     }
 
-
-
+    /**
+     * Custom validation messages.
+     */
     public function messages(): array
     {
         return [
-
-            'country.string' => 'Country must be text',
-
-            'city.string' => 'City must be text',
-
-            'region.string' => 'Region must be text',
-
-            'street.string' => 'Street must be text',
-
-            'building.string' => 'Building must be text'
-
+            'name.required' => 'Name is required.',
+            'email.required' => 'Email is required.',
+            'email.email' => 'Email format is invalid.',
+            'email.unique' => 'Email already exists.',
+            'password.required' => 'Password is required.',
+            'password.confirmed' => 'Password confirmation does not match.',
+            'password.min' => 'Password must be at least 8 characters.',
+            'role_id.exists' => 'Selected role does not exist.',
         ];
     }
 }

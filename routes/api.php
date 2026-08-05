@@ -3,8 +3,13 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-// Breeze Authentication Routes
-require __DIR__ . '/auth.php';
+// Authentication Controllers
+use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Auth\PasswordResetLinkController;
+use App\Http\Controllers\Auth\NewPasswordController;
+use App\Http\Controllers\Auth\EmailVerificationNotificationController;
+use App\Http\Controllers\Auth\VerifyEmailController;
 
 // Controllers
 use App\Http\Controllers\UserController;
@@ -24,11 +29,42 @@ use App\Http\Controllers\ProductUnitController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\SettingController;
 
+
+/*
+|--------------------------------------------------------------------------
+| Authentication Routes
+|--------------------------------------------------------------------------
+*/
+
+Route::post('/register', [RegisteredUserController::class, 'store']);
+
+Route::post('/login', [AuthenticatedSessionController::class, 'store']);
+
+Route::post('/forgot-password', [PasswordResetLinkController::class, 'store']);
+
+Route::post('/reset-password', [NewPasswordController::class, 'store']);
+
+
+/*
+|--------------------------------------------------------------------------
+| Email Verification Link
+|--------------------------------------------------------------------------
+|
+| لا نضع auth:sanctum هنا لأن الرابط يأتي من البريد
+| ويحتوي على signature للتحقق
+|
+*/
+
+Route::get('/verify-email/{id}/{hash}', VerifyEmailController::class)
+    ->middleware(['signed', 'throttle:6,1'])
+    ->name('verification.verify');
+
+
+
 /*
 |--------------------------------------------------------------------------
 | Public Routes
 |--------------------------------------------------------------------------
-| يمكن لأي زائر الوصول إليها
 */
 
 Route::apiResource('categories', CategoryController::class);
@@ -50,14 +86,15 @@ Route::apiResource('settings', SettingController::class);
 Route::apiResource('reviews', ReviewController::class);
 
 
+
 /*
 |--------------------------------------------------------------------------
 | Protected Routes (Sanctum)
 |--------------------------------------------------------------------------
-| تتطلب تسجيل الدخول
 */
 
 Route::middleware('auth:sanctum')->group(function () {
+
 
     /*
     |--------------------------------------------------------------------------
@@ -69,6 +106,21 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
 
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Send Email Verification Notification
+    |--------------------------------------------------------------------------
+    */
+
+    Route::post(
+        '/email/verification-notification',
+        [EmailVerificationNotificationController::class, 'store']
+    );
+
+
+
     /*
     |--------------------------------------------------------------------------
     | Users & Roles
@@ -79,6 +131,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('roles', RoleController::class);
 
+
+
     /*
     |--------------------------------------------------------------------------
     | Addresses
@@ -86,6 +140,8 @@ Route::middleware('auth:sanctum')->group(function () {
     */
 
     Route::apiResource('addresses', AddressController::class);
+
+
 
     /*
     |--------------------------------------------------------------------------
@@ -98,6 +154,8 @@ Route::middleware('auth:sanctum')->group(function () {
         InternalNotificationController::class
     );
 
+
+
     /*
     |--------------------------------------------------------------------------
     | Cart
@@ -108,12 +166,15 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::delete('/cart/clear', [CartController::class, 'clear']);
 
+
     Route::apiResource('cart/items', CartItemController::class)
         ->only([
             'store',
             'update',
             'destroy',
         ]);
+
+
 
     /*
     |--------------------------------------------------------------------------
@@ -128,8 +189,10 @@ Route::middleware('auth:sanctum')->group(function () {
             'show',
         ]);
 
+
     Route::patch(
         '/orders/{order}/cancel',
         [OrderController::class, 'cancel']
     );
+
 });
