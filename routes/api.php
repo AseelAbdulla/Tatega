@@ -10,6 +10,7 @@ use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 use App\Http\Controllers\Auth\VerifyEmailController;
+use App\Http\Controllers\Api\AuthController;
 
 // Controllers
 use App\Http\Controllers\UserController;
@@ -38,7 +39,7 @@ use App\Http\Controllers\SettingController;
 
 Route::post('/register', [RegisteredUserController::class, 'store']);
 
-Route::post('/login', [AuthenticatedSessionController::class, 'store']);
+Route::post('/login', [AuthController::class, 'login']);
 
 Route::post('/forgot-password', [PasswordResetLinkController::class, 'store']);
 
@@ -102,9 +103,9 @@ Route::middleware('auth:sanctum')->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    Route::get('/user', function (Request $request) {
-        return $request->user();
-    });
+    Route::get('/me', [AuthController::class, 'me']);
+
+    Route::post('/logout', [AuthController::class, 'logout']);
 
 
 
