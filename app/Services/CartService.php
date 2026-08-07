@@ -216,8 +216,13 @@ class CartService
         CartDetail $cartDetail
     ): void {
 
+        // dd($cartDetail);
         //تحميل علاقة السله ان لم تكن محمله
         $cartDetail->loadMissing('cart');
+        if (!$cartDetail->cart) {
+            abort(404, 'السله المرتبطه بهذا العنصر غير موجودة');
+        }
+
         if ($cartDetail->cart->user_id !== $user->id) {
 
             abort(403, 'غير مصرح لك بهذا الإجراء.');
@@ -244,9 +249,6 @@ class CartService
             );
         }
     }
-
-
-
 
     /**
      * تحميل بيانات السلة
