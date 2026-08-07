@@ -11,7 +11,7 @@ use Illuminate\Validation\ValidationException;
 class AuthController extends Controller
 {
     /**
-     * Login user and generate Sanctum token
+     * Login user and generate Sanctum token with Role/Permissions
      */
     public function login(Request $request): JsonResponse
     {
@@ -39,26 +39,37 @@ class AuthController extends Controller
             'success' => true,
             'message' => 'Login successful.',
             'data' => [
-                'user' => $user,
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->getRoleNames()->first(), // اسم الدور الرئيسي
+                    'permissions' => $user->getAllPermissions()->pluck('name'), // قائمة الصلاحيات
+                ],
                 'token' => $token,
                 'token_type' => 'Bearer',
             ],
         ], 200);
     }
 
-
     /**
-     * Get authenticated user
+     * Get authenticated user with Role/Permissions
      */
     public function me(Request $request): JsonResponse
     {
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+
         return response()->json([
             'success' => true,
             'message' => 'User retrieved successfully.',
-            'data' => $request->user(),
+            'data' => [
+                'user' => $user,
+                'role' => $user->getRoleNames()->first(),
+                'permissions' => $user->getAllPermissions()->pluck('name'),
+            ],
         ], 200);
     }
-
 
     /**
      * Logout user and delete current token

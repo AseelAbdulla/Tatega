@@ -12,7 +12,9 @@ return new class extends Migration
    public function up(): void
 {
     Schema::table('users', function (Blueprint $table) {
-        $table->rememberToken();
+        if (!Schema::hasColumn('users', 'remember_token')) {
+            $table->rememberToken(); // أو $table->string('remember_token', 100)->nullable();
+        }
     });
 }
 

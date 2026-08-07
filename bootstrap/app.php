@@ -4,7 +4,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Auth\AuthenticationException;
-use Illuminate\Auth\Access\AuthorizationException;
+use Spatie\Permission\Exceptions\UnauthorizedException;
 use Symfony\Component\HttpFoundation\Response;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -20,8 +20,12 @@ return Application::configure(basePath: dirname(__DIR__))
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
         ]);
 
+        // تسجيل ألقاب الـ Middlewares الخاصة بـ Spatie وبقية النظام
         $middleware->alias([
             'verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,
+            'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
+            'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+            'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
         ]);
 
     })
@@ -29,53 +33,30 @@ return Application::configure(basePath: dirname(__DIR__))
 
         /*
         |--------------------------------------------------------------------------
-        | Authentication Exception (401)
+        | Authentication Exception (401) - غير مسجل الدخول
         |--------------------------------------------------------------------------
-        |
-        | يرجع JSON بدل صفحة HTML عند عدم تسجيل الدخول
-        |
         */
-
-        $exceptions->render(function (
-            AuthenticationException $e,
-            $request
-        ) {
-
-            if ($request->expectsJson()) {
-
+        $exceptions->render(function (AuthenticationException $e, $request) {
+            if ($request->expectsJson() || $request->is('api/*')) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Unauthenticated.',
+                    'message' => 'Unauthenticated: Invalid or missing token.',
                 ], Response::HTTP_UNAUTHORIZED);
-
             }
-
         });
-
 
         /*
         |--------------------------------------------------------------------------
-        | Authorization Exception (403)
+        | Authorization / Spatie Exception (403) - لا يملك الصلاحية/الدور
         |--------------------------------------------------------------------------
-        |
-        | يرجع JSON بدل صفحة HTML عند عدم وجود صلاحية
-        |
         */
-
-        $exceptions->render(function (
-            AuthorizationException $e,
-            $request
-        ) {
-
-            if ($request->expectsJson()) {
-
+        $exceptions->render(function (UnauthorizedException $e, $request) {
+            if ($request->expectsJson() || $request->is('api/*')) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Forbidden.',
+                    'message' => 'Forbidden: You do not have the required role or permission for this dashboard.',
                 ], Response::HTTP_FORBIDDEN);
-
             }
-
         });
 
     })

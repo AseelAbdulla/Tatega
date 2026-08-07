@@ -7,10 +7,8 @@ use App\Http\Requests\StoreCartItemRequest;
 use App\Http\Requests\UpdateCartItemRequest;
 use App\Http\Resources\CartResource;
 use App\Models\CartDetail;
-use App\Models\User;
 use App\Services\CartService;
 use Illuminate\Http\JsonResponse;
-
 
 class CartItemController extends Controller
 {
@@ -24,7 +22,7 @@ class CartItemController extends Controller
     public function store(StoreCartItemRequest $request): CartResource
     {
         $cart = $this->cartService->addItem(
-            auth()->user(),
+            $request->user(),
             $request->validated()
         );
 
@@ -33,13 +31,17 @@ class CartItemController extends Controller
 
     /**
      * Update cart item quantity.
+     * تم استخدام $id و findOrFail لضمان مطابقة الـ Route برمجياً بدون أخطاء
      */
     public function update(
         UpdateCartItemRequest $request,
-        CartDetail $cartDetail
+        $id
     ): CartResource {
+        // جلب عنصر السلة بالـ ID الخاص به أو إرجاع 404 إذا لم يكن موجوداً
+        $cartDetail = CartDetail::findOrFail($id);
+
         $cart = $this->cartService->updateQuantity(
-            auth()->user(),
+            $request->user(),
             $cartDetail,
             $request->validated()['quantity']
         );
@@ -50,10 +52,12 @@ class CartItemController extends Controller
     /**
      * Remove item from cart.
      */
-    public function destroy(CartDetail $cartDetail): JsonResponse
+    public function destroy($id): JsonResponse
     {
+        $cartDetail = CartDetail::findOrFail($id);
+
         $this->cartService->removeItem(
-            auth()->user(),
+            request()->user(),
             $cartDetail
         );
 
@@ -63,3 +67,4 @@ class CartItemController extends Controller
         ]);
     }
 }
+
