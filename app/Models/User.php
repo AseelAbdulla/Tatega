@@ -2,16 +2,21 @@
 
 namespace App\Models;
 
-use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens, HasFactory, Notifiable, HasRoles;
+
+    /**
+     * Guard used by Spatie Permission.
+     */
+    protected $guard_name = 'sanctum';
 
     protected $fillable = [
         'name',
@@ -34,13 +39,13 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
-
-    // Roles
-    // public function roles()
-    // {
-    //     return $this->belongsToMany(Role::class, 'role_user');
-    // }
-
+    /**
+     * Default guard used by Spatie Permission.
+     */
+    public function getDefaultGuardName(): string
+    {
+        return 'sanctum';
+    }
 
     // Addresses
     public function addresses()
@@ -48,13 +53,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Address::class);
     }
 
-
     // Carts
     public function carts()
     {
         return $this->hasMany(Cart::class);
     }
-
 
     // Orders
     public function orders()
@@ -62,13 +65,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Order::class);
     }
 
-
     // Reviews
     public function reviews()
     {
         return $this->hasMany(Review::class);
     }
-
 
     // Internal Notifications
     public function internalNotifications()
