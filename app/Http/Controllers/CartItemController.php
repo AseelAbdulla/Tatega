@@ -2,21 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreCartItemRequest;
 use App\Http\Requests\UpdateCartItemRequest;
 use App\Http\Resources\CartResource;
 use App\Models\CartDetail;
-use App\Models\User;
 use App\Services\CartService;
 use Illuminate\Http\JsonResponse;
-
 
 class CartItemController extends Controller
 {
     public function __construct(
         protected CartService $cartService
     ) {}
+
 
     /**
      * Add item to cart.
@@ -31,30 +29,33 @@ class CartItemController extends Controller
         return new CartResource($cart);
     }
 
+
     /**
      * Update cart item quantity.
      */
     public function update(
         UpdateCartItemRequest $request,
-        CartDetail $cartDetail
+        CartDetail $item
     ): CartResource {
         $cart = $this->cartService->updateQuantity(
             auth()->user(),
-            $cartDetail,
+            $item,
             $request->validated()['quantity']
         );
 
         return new CartResource($cart);
     }
 
+
     /**
      * Remove item from cart.
      */
-    public function destroy(CartDetail $cartDetail): JsonResponse
-    {
+    public function destroy(
+        CartDetail $item
+    ): JsonResponse {
         $this->cartService->removeItem(
             auth()->user(),
-            $cartDetail
+            $item
         );
 
         return response()->json([

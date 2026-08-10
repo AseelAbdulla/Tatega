@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('password', 255);
             $table->rememberToken();
             $table->string('status', 50)->default('active');
+            $table->string('role', 50)->default('local-client');
            $table->timestamps();
         });
     }

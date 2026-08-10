@@ -2,14 +2,12 @@
 
 namespace App\Http\Controllers\Auth;
 
-use Illuminate\Support\Facades\Mail;
-use App\Mail\WelcomeUserMail;
+
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
@@ -25,34 +23,51 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'email' => [
+                'required',
+                'string',
+                'lowercase',
+                'email',
+                'max:255',
+                'unique:' . User::class
+            ],
+            'password' => [
+                'required',
+                'confirmed',
+                Rules\Password::defaults()
+            ],
+            'phone' => [
+                'required',
+                'string',
+                'max:50',
+                'unique:users,phone'
+            ],
+            'role' => [
+                'required',
+                'in:admin,local-client,international-client'
+            ],
         ]);
+
+        $roleName = match ($request->role) {
+            'admin' => 'admin',
+            'local-client' => 'customer',
+            'international-client' => 'importer',
+        };
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'phone' => $request->phone,
-            'status' => $request->active,
+            'status' => 'active',
             'password' => Hash::make($request->string('password')),
         ]);
-        Mail::to($user->email)->send(new WelcomeUserMail());
+
+        $role = \App\Models\Role::where('name', $roleName)->firstOrFail();
+
+        $user->roles()->attach($role->id);
 
         event(new Registered($user));
-        $user = User::create([
-    // بيانات المستخدم
-]);
-
-// إرسال رسالة الترحيب الخاصة بك
-Mail::to($user->email)->send(new WelcomeUserMail());
-
-// حدث Breeze (للـ Email Verification إذا كان مفعّل)
-event(new Registered($user));
-
-Auth::login($user);
-
-        Auth::login($user);
-
+ 
         return response()->noContent();
     }
-}
+ }

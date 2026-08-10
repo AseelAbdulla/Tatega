@@ -20,6 +20,7 @@ class User extends Authenticatable
         'phone',
         'password',
         'status',
+         'role',
     ];
 
     protected $hidden = [
@@ -27,11 +28,13 @@ class User extends Authenticatable
     ];
 
     // الأدوار (Roles) - علاقة Many-to-Many عبر جدول pivot `role_user`
-    public function roles()
-    
-    {
-        return $this->belongsToMany(Role::class, 'role_user');
-    }
+   public function roles()
+{
+    return $this->belongsToMany(
+        \App\Models\Role::class,
+        'role_user'
+    );
+}
 
     // العناوين
     public function addresses()
