@@ -12,11 +12,16 @@ use Illuminate\Http\Response;
 class AuthenticatedSessionController extends Controller
 {
     /**
-     * Handle an incoming authentication request.
+     * Handle login request (API Sanctum)
      */
     public function store(LoginRequest $request): JsonResponse
     {
-        $request->authenticate();
+        // Validation
+        $request->validate([
+            'email' => [
+                'required',
+                'email'
+            ],
 
         $user = $request->user();
 
@@ -30,8 +35,10 @@ class AuthenticatedSessionController extends Controller
         ], 200);
     }
 
+
+
     /**
-     * Destroy an authenticated session.
+     * Logout API
      */
   public function destroy(Request $request): Response
 {

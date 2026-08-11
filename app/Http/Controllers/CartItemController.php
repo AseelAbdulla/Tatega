@@ -22,7 +22,7 @@ class CartItemController extends Controller
     public function store(StoreCartItemRequest $request): CartResource
     {
         $cart = $this->cartService->addItem(
-            auth()->user(),
+            $request->user(),
             $request->validated()
         );
 
@@ -32,11 +32,15 @@ class CartItemController extends Controller
 
     /**
      * Update cart item quantity.
+     * تم استخدام $id و findOrFail لضمان مطابقة الـ Route برمجياً بدون أخطاء
      */
     public function update(
         UpdateCartItemRequest $request,
         CartDetail $item
     ): CartResource {
+        // جلب عنصر السلة بالـ ID الخاص به أو إرجاع 404 إذا لم يكن موجوداً
+        $cartDetail = CartDetail::findOrFail($id);
+
         $cart = $this->cartService->updateQuantity(
             auth()->user(),
             $item,

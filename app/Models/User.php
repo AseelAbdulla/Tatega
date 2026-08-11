@@ -2,17 +2,21 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
-use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
 
- 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasFactory, Notifiable, HasApiTokens;
+    use HasApiTokens, HasFactory, Notifiable, HasRoles;
+
+    /**
+     * Guard used by Spatie Permission.
+     */
+    protected $guard_name = 'sanctum';
 
     protected $fillable = [
         'name',
@@ -25,42 +29,50 @@ class User extends Authenticatable
 
     protected $hidden = [
         'password',
+        'remember_token',
     ];
 
-    // الأدوار (Roles) - علاقة Many-to-Many عبر جدول pivot `role_user`
-   public function roles()
-{
-    return $this->belongsToMany(
-        \App\Models\Role::class,
-        'role_user'
-    );
-}
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+        ];
+    }
 
-    // العناوين
+    /**
+     * Default guard used by Spatie Permission.
+     */
+    public function getDefaultGuardName(): string
+    {
+        return 'sanctum';
+    }
+
+    // Addresses
     public function addresses()
     {
         return $this->hasMany(Address::class);
     }
 
-    // السلات
+    // Carts
     public function carts()
     {
         return $this->hasMany(Cart::class);
     }
 
-    // الطلبات
+    // Orders
     public function orders()
     {
         return $this->hasMany(Order::class);
     }
 
-    // التقييمات
+    // Reviews
     public function reviews()
     {
         return $this->hasMany(Review::class);
     }
 
-    // الإشعارات الداخلية
+    // Internal Notifications
     public function internalNotifications()
     {
         return $this->hasMany(InternalNotification::class);

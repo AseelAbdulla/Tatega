@@ -1,3 +1,4 @@
+
 <?php
 
 use Illuminate\Http\Request;
@@ -93,9 +94,15 @@ Route::middleware('auth:sanctum')->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    Route::get('/user', function (Request $request) {
-        return $request->user();
-    });
+    Route::get('/me', [AuthController::class, 'me']);
+
+    Route::post('/logout', [AuthController::class, 'logout']);
+
+    Route::post(
+        '/email/verification-notification',
+        [EmailVerificationNotificationController::class, 'store']
+    );
+
 
 
     /*
@@ -223,9 +230,251 @@ Route::middleware('auth:sanctum')->group(function () {
     |--------------------------------------------------------------------------
     | المستخدم المسجل يستطيع إدارة عناوينه
     |--------------------------------------------------------------------------
+    |
+    | الوصول هنا يعتمد على Permissions.
+    |
     */
 
-    Route::apiResource('addresses', AddressController::class);
+    Route::prefix('admin')->group(function () {
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Users
+        |--------------------------------------------------------------------------
+        */
+
+        Route::middleware('permission:view-users')
+            ->get('/users', [
+                UserController::class,
+                'index'
+            ]);
+
+        Route::middleware('permission:view-users')
+            ->get('/users/{user}', [
+                UserController::class,
+                'show'
+            ]);
+
+        Route::middleware('permission:create-users')
+            ->post('/users', [
+                UserController::class,
+                'store'
+            ]);
+
+        Route::middleware('permission:update-users')
+            ->match(['put', 'patch'], '/users/{user}', [
+                UserController::class,
+                'update'
+            ]);
+
+        Route::middleware('permission:delete-users')
+            ->delete('/users/{user}', [
+                UserController::class,
+                'destroy'
+            ]);
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Roles
+        |--------------------------------------------------------------------------
+        */
+
+        Route::middleware('permission:view-roles')
+            ->get('/roles', [
+                RoleController::class,
+                'index'
+            ]);
+
+        Route::middleware('permission:view-roles')
+            ->get('/roles/{role}', [
+                RoleController::class,
+                'show'
+            ]);
+
+        Route::middleware('permission:create-roles')
+            ->post('/roles', [
+                RoleController::class,
+                'store'
+            ]);
+
+        Route::middleware('permission:update-roles')
+            ->match(['put', 'patch'], '/roles/{role}', [
+                RoleController::class,
+                'update'
+            ]);
+
+        Route::middleware('permission:delete-roles')
+            ->delete('/roles/{role}', [
+                RoleController::class,
+                'destroy'
+            ]);
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Permissions
+        |--------------------------------------------------------------------------
+        */
+
+        Route::middleware('permission:view-roles')
+            ->get('/permissions', [
+                RoleController::class,
+                'permissions'
+            ]);
+
+        Route::middleware('permission:view-roles')
+            ->get('/permissions/{id}', [
+                RoleController::class,
+                'showPermission'
+            ]);
+
+        Route::middleware('permission:create-roles')
+            ->post('/permissions', [
+                RoleController::class,
+                'storePermission'
+            ]);
+
+        Route::middleware('permission:update-roles')
+            ->match(['put', 'patch'], '/permissions/{id}', [
+                RoleController::class,
+                'updatePermission'
+            ]);
+
+        Route::middleware('permission:delete-roles')
+            ->delete('/permissions/{id}', [
+                RoleController::class,
+                'destroyPermission'
+            ]);
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Assign Permission To Role
+        |--------------------------------------------------------------------------
+        */
+
+        Route::middleware('permission:update-roles')
+            ->post('/roles/{roleId}/permissions', [
+                RoleController::class,
+                'assignPermission'
+            ]);
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Remove Permission From Role
+        |--------------------------------------------------------------------------
+        */
+
+        Route::middleware('permission:update-roles')
+            ->delete('/roles/{roleId}/permissions', [
+                RoleController::class,
+                'removePermission'
+            ]);
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Banners
+        |--------------------------------------------------------------------------
+        */
+
+        Route::middleware('permission:manage-banners')
+            ->post('/banners', [
+                BannerController::class,
+                'store'
+            ]);
+
+        Route::middleware('permission:manage-banners')
+            ->match(['put', 'patch'], '/banners/{banner}', [
+                BannerController::class,
+                'update'
+            ]);
+
+        Route::middleware('permission:manage-banners')
+            ->delete('/banners/{banner}', [
+                BannerController::class,
+                'destroy'
+            ]);
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Features
+        |--------------------------------------------------------------------------
+        */
+
+        Route::middleware('permission:manage-features')
+            ->post('/features', [
+                FeatureController::class,
+                'store'
+            ]);
+
+        Route::middleware('permission:manage-features')
+            ->match(['put', 'patch'], '/features/{feature}', [
+                FeatureController::class,
+                'update'
+            ]);
+
+        Route::middleware('permission:manage-features')
+            ->delete('/features/{feature}', [
+                FeatureController::class,
+                'destroy'
+            ]);
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Partners
+        |--------------------------------------------------------------------------
+        */
+
+        Route::middleware('permission:manage-partners')
+            ->post('/partners', [
+                PartnerController::class,
+                'store'
+            ]);
+
+        Route::middleware('permission:manage-partners')
+            ->match(['put', 'patch'], '/partners/{partner}', [
+                PartnerController::class,
+                'update'
+            ]);
+
+        Route::middleware('permission:manage-partners')
+            ->delete('/partners/{partner}', [
+                PartnerController::class,
+                'destroy'
+            ]);
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Settings
+        |--------------------------------------------------------------------------
+        */
+
+        Route::middleware('permission:manage-settings')
+            ->post('/settings', [
+                SettingController::class,
+                'store'
+            ]);
+
+        Route::middleware('permission:manage-settings')
+            ->match(['put', 'patch'], '/settings/{setting}', [
+                SettingController::class,
+                'update'
+            ]);
+
+        Route::middleware('permission:manage-settings')
+            ->delete('/settings/{setting}', [
+                SettingController::class,
+                'destroy'
+            ]);
+    });
+
 
 
     /*
@@ -234,6 +483,10 @@ Route::middleware('auth:sanctum')->group(function () {
     |--------------------------------------------------------------------------
     | المستخدم المسجل يستطيع إضافة مراجعة
     |--------------------------------------------------------------------------
+    |
+    | لا نعتمد على role هنا.
+    | الـ Permission هي التي تحدد الوصول.
+    |
     */
 
     Route::post(
@@ -248,15 +501,24 @@ Route::middleware('auth:sanctum')->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    Route::get('/cart', [CartController::class, 'index']);
+    Route::middleware('permission:manage-cart')
+        ->get('/cart', [
+            CartController::class,
+            'index'
+        ]);
 
-    Route::delete('/cart/clear', [CartController::class, 'clear']);
+    Route::middleware('permission:manage-cart')
+        ->delete('/cart/clear', [
+            CartController::class,
+            'clear'
+        ]);
 
-    Route::apiResource('cart/items', CartItemController::class)
+    Route::middleware('permission:manage-cart')
+        ->apiResource('cart/items', CartItemController::class)
         ->only([
             'store',
             'update',
-            'destroy',
+            'destroy'
         ]);
 
 
@@ -266,11 +528,10 @@ Route::middleware('auth:sanctum')->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    Route::apiResource('orders', OrderController::class)
-        ->only([
-            'index',
-            'store',
-            'show',
+    Route::middleware('permission:manage-my-orders')
+        ->get('/my-orders', [
+            OrderController::class,
+            'index'
         ]);
 
 
