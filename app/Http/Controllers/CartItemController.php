@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreCartItemRequest;
 use App\Http\Requests\UpdateCartItemRequest;
 use App\Http\Resources\CartResource;
@@ -15,6 +14,7 @@ class CartItemController extends Controller
     public function __construct(
         protected CartService $cartService
     ) {}
+
 
     /**
      * Add item to cart.
@@ -29,36 +29,37 @@ class CartItemController extends Controller
         return new CartResource($cart);
     }
 
+
     /**
      * Update cart item quantity.
      * تم استخدام $id و findOrFail لضمان مطابقة الـ Route برمجياً بدون أخطاء
      */
     public function update(
         UpdateCartItemRequest $request,
-        $id
+        CartDetail $item
     ): CartResource {
         // جلب عنصر السلة بالـ ID الخاص به أو إرجاع 404 إذا لم يكن موجوداً
         $cartDetail = CartDetail::findOrFail($id);
 
         $cart = $this->cartService->updateQuantity(
-            $request->user(),
-            $cartDetail,
+            auth()->user(),
+            $item,
             $request->validated()['quantity']
         );
 
         return new CartResource($cart);
     }
 
+
     /**
      * Remove item from cart.
      */
-    public function destroy($id): JsonResponse
-    {
-        $cartDetail = CartDetail::findOrFail($id);
-
+    public function destroy(
+        CartDetail $item
+    ): JsonResponse {
         $this->cartService->removeItem(
-            request()->user(),
-            $cartDetail
+            auth()->user(),
+            $item
         );
 
         return response()->json([
@@ -67,4 +68,3 @@ class CartItemController extends Controller
         ]);
     }
 }
-

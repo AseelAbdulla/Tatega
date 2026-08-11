@@ -3,17 +3,18 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\LoginRequest;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use App\Models\User;
+use Illuminate\Http\Response;
+
 
 class AuthenticatedSessionController extends Controller
 {
     /**
      * Handle login request (API Sanctum)
      */
-    public function store(Request $request)
+    public function store(LoginRequest $request): JsonResponse
     {
         // Validation
         $request->validate([
@@ -22,40 +23,15 @@ class AuthenticatedSessionController extends Controller
                 'email'
             ],
 
-            'password' => [
-                'required'
-            ],
-        ]);
+        $user = $request->user();
 
-
-        // البحث عن المستخدم
-        $user = User::where('email', $request->email)->first();
-
-
-        // التحقق من البيانات
-        if (!$user || !Hash::check($request->password, $user->password)) {
-
-            return response()->json([
-                'message' => 'Invalid email or password'
-            ], 401);
-
-        }
-
-
-        // إنشاء Token Sanctum
-        $token = $user->createToken('auth_token')->plainTextToken;
-
+        $token = $user->createToken('auth-token')->plainTextToken;
 
         return response()->json([
-
-            'message' => 'Logged in successfully',
-
-            'access_token' => $token,
-
+            'message' => 'Login successful.',
+            'user' => $user,
+            'token' => $token,
             'token_type' => 'Bearer',
-
-            'user' => $user
-
         ], 200);
     }
 
@@ -64,18 +40,14 @@ class AuthenticatedSessionController extends Controller
     /**
      * Logout API
      */
-    public function destroy(Request $request)
-    {
+  public function destroy(Request $request): Response
+{
+    $user = $request->user();
 
-        // حذف التوكن الحالي
-        $request->user()->currentAccessToken()->delete();
-
-
-        return response()->json([
-
-            'message' => 'Logged out successfully'
-
-        ], 200);
-
+    if ($user && $user->currentAccessToken()) {
+        $user->currentAccessToken()->delete();
     }
+
+    return response()->noContent();
 }
+  }

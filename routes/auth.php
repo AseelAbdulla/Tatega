@@ -26,6 +26,9 @@ Route::get('/verify-email/{id}/{hash}', VerifyEmailController::class)
     ->name('verification.verify');
 
 
+Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
+    ->middleware('auth:sanctum')
+    ->name('logout');
 // إعادة إرسال رابط التحقق
 Route::post('/email/verification-notification', [
     EmailVerificationNotificationController::class,
