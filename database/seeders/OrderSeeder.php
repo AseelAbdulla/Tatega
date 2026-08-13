@@ -33,7 +33,7 @@ class OrderSeeder extends Seeder
             'rejection_reason' => null,
             'payment_status' => 'pending',
             'payment_method' => 'cash_on_delivery',
-            'payment_recepit' => 'order/default.jpg',
+            // 'payment_recepit' => 'order/default.jpg',
         ]);
     }
 }

@@ -13,12 +13,32 @@ class CartResource extends JsonResource
     public function toArray(Request $request): array
     {
         $items = CartDetailResource::collection($this->details);
+        $primaryAddress = $this->user->addresses->first();
+        $subtotal = (float) $this->details->sum(function ($item) {
+            return $item->price * $item->quantity;
+        });
+        $shippingFee = ($this->details && $this->details->count() > 0) ? 1000.00 : 0.00;
+        $grandTotal = $subtotal + $shippingFee;
 
         return [
 
             'id' => $this->id,
 
-            'user_id' => $this->user_id,
+            'user' => [
+                'id' => $this->user->id,
+                'name' => $this->user->name,
+                'email' => $this->user->email,
+                'phone' => $this->user->phone,
+                'address' => $primaryAddress ? [
+                    'id' => $primaryAddress->id,
+                    'city' => $primaryAddress->city,
+                    'region' => $primaryAddress->region,
+                    'street' => $primaryAddress->street,
+                    'building' => $primaryAddress->building,
+                    'full_address' => "{$primaryAddress->city}، حي {$primaryAddress->region} - شارع {$primaryAddress->street}"
+                ] : null,
+            ],
+
 
             'items' => $items,
 
@@ -28,10 +48,13 @@ class CartResource extends JsonResource
             // مجموع الكميات
             'total_quantity' => $this->details->sum('quantity'),
 
-            // المبلغ الكلي
-            'grand_total' => (float) $this->details->sum(function ($item) {
-                return $item->price * $item->quantity;
-            }),
+            // التفاصيل الحسابيه المحدثة 
+            'subtotal' => $subtotal, //المجموع الفرعي للمنتجات
+            // 
+            'shipping_fee' => $shippingFee, //رسوم شحن ثابته 1000 ريال
+
+               // المبلغ الكلي
+            'grand_total' => $grandTotal,
 
             'created_at' => $this->created_at,
 

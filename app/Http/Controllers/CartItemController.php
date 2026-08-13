@@ -39,7 +39,7 @@ class CartItemController extends Controller
         CartDetail $item
     ): CartResource {
         // جلب عنصر السلة بالـ ID الخاص به أو إرجاع 404 إذا لم يكن موجوداً
-        $cartDetail = CartDetail::findOrFail($id);
+        // $cartDetail = CartDetail::findOrFail($id);
 
         $cart = $this->cartService->updateQuantity(
             auth()->user(),

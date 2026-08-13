@@ -124,7 +124,7 @@ return new class extends Migration
             |--------------------------------------------------------------------------
             */
 
-            $table->string('payment_receipt')
+            $table->string('payment_recepit')
                 ->nullable();
 
             /*

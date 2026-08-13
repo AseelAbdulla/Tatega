@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\AddressController;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 use App\Http\Controllers\BannerController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CartItemController;
@@ -196,7 +198,7 @@ Route::middleware('auth:sanctum')->group(function () {
         |--------------------------------------------------------------------------
         */
 
-        Route::apiResource('partners', PartnerController::class);
+        Route::apiResource('partners', PartnerController::class)->except(['index', 'show']);
 
 
         /*
