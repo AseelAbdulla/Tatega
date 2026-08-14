@@ -222,7 +222,6 @@ Route::middleware('auth:sanctum')->group(function () {
             'internal-notifications',
             InternalNotificationController::class
         );
-
     });
 
 
@@ -503,26 +502,24 @@ Route::middleware('auth:sanctum')->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    Route::middleware('permission:manage-cart')
-        ->get('/cart', [
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/cart/count', [CartController::class, 'count']);
+
+        Route::get('/cart', [
             CartController::class,
             'index'
         ]);
-
-    Route::middleware('permission:manage-cart')
-        ->delete('/cart/clear', [
+        Route::delete('/cart/clear', [
             CartController::class,
             'clear'
         ]);
-
-    Route::middleware('permission:manage-cart')
-        ->apiResource('cart/items', CartItemController::class)
-        ->only([
-            'store',
-            'update',
-            'destroy'
-        ]);
-
+        Route::apiResource('cart/items', CartItemController::class)
+            ->only([
+                'store',
+                'update',
+                'destroy'
+            ]);
+    });
 
     /*
     |--------------------------------------------------------------------------
@@ -530,17 +527,18 @@ Route::middleware('auth:sanctum')->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    Route::middleware('permission:manage-my-orders')
-        ->get('/my-orders', [
-            OrderController::class,
-            'index'
-        ]);
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::apiResource(
+            'orders',
+            OrderController::class
+        )
+            ->only(['store', 'index', 'show']);
 
-
-    Route::patch(
-        '/orders/{order}/cancel',
-        [OrderController::class, 'cancel']
-    );
+        Route::patch(
+            '/orders/{order}/cancel',
+            [OrderController::class, 'cancel']
+        );
+    });
 
 
     /*
@@ -554,7 +552,5 @@ Route::middleware('auth:sanctum')->group(function () {
         return response()->json([
             'message' => 'Admin access granted.'
         ]);
-
     });
-
 });

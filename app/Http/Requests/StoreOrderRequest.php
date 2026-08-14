@@ -59,6 +59,19 @@ class StoreOrderRequest extends FormRequest
                 'mimes:jpg,jpeg,png,webp',
                 'max:2048',
             ],
+
+            'wallet_number' => [
+                'nullable',
+                'required_if:payment_method,wallet',
+                'string',
+                'max:50',
+            ],
+
+            'shipping_fee' => [
+                'nullable',
+                'numeric',
+                'min:0',
+            ],
         ];
     }
 

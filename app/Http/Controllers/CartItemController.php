@@ -8,6 +8,7 @@ use App\Http\Resources\CartResource;
 use App\Models\CartDetail;
 use App\Services\CartService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Request;
 
 class CartItemController extends Controller
 {
@@ -39,7 +40,6 @@ class CartItemController extends Controller
         CartDetail $item
     ): CartResource {
         // جلب عنصر السلة بالـ ID الخاص به أو إرجاع 404 إذا لم يكن موجوداً
-        // $cartDetail = CartDetail::findOrFail($id);
 
         $cart = $this->cartService->updateQuantity(
             auth()->user(),
@@ -49,7 +49,6 @@ class CartItemController extends Controller
 
         return new CartResource($cart);
     }
-
 
     /**
      * Remove item from cart.

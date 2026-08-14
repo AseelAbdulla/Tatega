@@ -106,6 +106,9 @@ return new class extends Migration
             $table->decimal('tax', 12, 2)
                 ->default(0);
 
+            $table->decimal('shipping_fee', 12, 2)
+                ->default(0);
+
             $table->decimal('total_price', 12, 2);
 
             /*
@@ -126,6 +129,10 @@ return new class extends Migration
 
             $table->string('payment_recepit')
                 ->nullable();
+
+            $table->string('wallet_number', 50)
+                ->nullable();
+
 
             /*
             |--------------------------------------------------------------------------

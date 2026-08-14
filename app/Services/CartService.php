@@ -31,6 +31,17 @@ class CartService
     }
 
 
+    /**
+     * جلب إجمالي عدد القطع في سلة المستخدم
+     */
+    public function getCartCount(int $userId): int
+    {
+        $totalQuantity = CartDetail::whereHas('cart', function($query) use ($userId){
+$query->where('user_id', $userId);
+        })->sum('quantity');
+        return (int) ($totalQuantity ?? 0);
+    }
+
 
     /**
      * إضافة منتج إلى السلة
