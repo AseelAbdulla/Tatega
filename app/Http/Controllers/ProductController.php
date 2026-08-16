@@ -53,7 +53,6 @@ class ProductController extends Controller
             ],
 
 
-            'slug' => Str::slug($data['name_en']),
 
 
             'sku' => $data['sku'],
@@ -139,8 +138,7 @@ class ProductController extends Controller
             ],
 
 
-            'slug' =>
-                Str::slug($data['name_en']),
+           
 
 
 
