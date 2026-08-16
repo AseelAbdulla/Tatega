@@ -21,6 +21,7 @@ class OrderResource extends JsonResource
                 'name' => $this->customer_name,
                 'phone' => $this->customer_phone,
                 'email' => $this->customer_email,
+                'role' => $this->user?->role ?? 'local-client',
             ],
 
             'address' => $this->when(
@@ -63,7 +64,7 @@ class OrderResource extends JsonResource
             'notes' => $this->notes,
 
             'rejection_reason' =>
-                $this->rejection_reason,
+            $this->rejection_reason,
 
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

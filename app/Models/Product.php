@@ -3,10 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
+use Spatie\Translatable\HasTranslations;
 
 class Product extends Model
 {
+    use HasTranslations;
+    
     protected $fillable = [
         'category_id',
         'name',
@@ -24,7 +26,7 @@ class Product extends Model
         'name' => 'array',
         'description' => 'array',
     ];
-
+public $translatable = ['name'];
     public function category()
     {
         return $this->belongsTo(Category::class);

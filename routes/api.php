@@ -1,4 +1,3 @@
-
 <?php
 
 use Illuminate\Http\Request;
@@ -29,528 +28,131 @@ use App\Http\Controllers\SettingController;
 |--------------------------------------------------------------------------
 | PUBLIC ROUTES
 |--------------------------------------------------------------------------
-| هذه العمليات يمكن للزائر الوصول إليها بدون تسجيل دخول
-|--------------------------------------------------------------------------
 */
 
-
-// Categories - Public Read
-Route::apiResource('categories', CategoryController::class)
-    ->only(['index', 'show']);
-
-
-// Products - Public Read
-Route::apiResource('products', ProductController::class)
-    ->only(['index', 'show']);
-
-
-// Product Images - Public Read
-Route::apiResource('product-images', ProductImageController::class)
-    ->only(['index', 'show']);
-
-
-// Product Units - Public Read
-Route::apiResource('product-units', ProductUnitController::class)
-    ->only(['index', 'show']);
-
-
-// Banners - Public
-Route::apiResource('banners', BannerController::class)
-    ->only(['index', 'show']);
-
-
-// Features - Public
-Route::apiResource('features', FeatureController::class)
-    ->only(['index', 'show']);
-
-
-// Partners - Public
-Route::apiResource('partners', PartnerController::class)
-    ->only(['index', 'show']);
-
-
-// Settings - Public Read
-Route::apiResource('settings', SettingController::class)
-    ->only(['index', 'show']);
-
-
-// Reviews - Public Read
-Route::apiResource('reviews', ReviewController::class)
-    ->only(['index', 'show']);
+Route::apiResource('categories', CategoryController::class)->only(['index', 'show']);
+Route::apiResource('products', ProductController::class)->only(['index', 'show']);
+Route::apiResource('product-images', ProductImageController::class)->only(['index', 'show']);
+Route::apiResource('product-units', ProductUnitController::class)->only(['index', 'show']);
+Route::apiResource('banners', BannerController::class)->only(['index', 'show']);
+Route::apiResource('features', FeatureController::class)->only(['index', 'show']);
+Route::apiResource('partners', PartnerController::class)->only(['index', 'show']);
+Route::apiResource('settings', SettingController::class)->only(['index', 'show']);
+Route::apiResource('reviews', ReviewController::class)->only(['index', 'show']);
 
 
 /*
 |--------------------------------------------------------------------------
-| PROTECTED ROUTES
-|--------------------------------------------------------------------------
-| تحتاج تسجيل دخول باستخدام Sanctum
+| PROTECTED ROUTES (Sanctum)
 |--------------------------------------------------------------------------
 */
 
 Route::middleware('auth:sanctum')->group(function () {
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | CURRENT USER
-    |--------------------------------------------------------------------------
-    */
-
     Route::get('/me', [AuthController::class, 'me']);
-
     Route::post('/logout', [AuthController::class, 'logout']);
-
-    Route::post(
-        '/email/verification-notification',
-        [EmailVerificationNotificationController::class, 'store']
-    );
-
-
+    Route::post('/email/verification-notification', [EmailVerificationNotificationController::class, 'store']);
 
     /*
     |--------------------------------------------------------------------------
-    | ADMIN ONLY
+    | ADMIN ONLY (Full Admin Resources)
     |--------------------------------------------------------------------------
     */
-
     Route::middleware('role:admin')->group(function () {
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Users Management
-        |--------------------------------------------------------------------------
-        */
-
         Route::apiResource('users', UserController::class);
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Roles Management
-        |--------------------------------------------------------------------------
-        */
-
         Route::apiResource('roles', RoleController::class);
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Categories Management
-        |--------------------------------------------------------------------------
-        */
-
-        Route::apiResource('categories', CategoryController::class)
-            ->except(['index', 'show']);
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Products Management
-        |--------------------------------------------------------------------------
-        */
-
-        Route::apiResource('products', ProductController::class)
-            ->except(['index', 'show']);
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Product Images Management
-        |--------------------------------------------------------------------------
-        */
-
-        Route::apiResource('product-images', ProductImageController::class)
-            ->except(['index', 'show']);
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Product Units Management
-        |--------------------------------------------------------------------------
-        */
-
-        Route::apiResource('product-units', ProductUnitController::class)
-            ->except(['index', 'show']);
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Banners Management
-        |--------------------------------------------------------------------------
-        */
-
+        Route::apiResource('categories', CategoryController::class)->except(['index', 'show']);
+        Route::apiResource('products', ProductController::class)->except(['index', 'show']);
+        Route::apiResource('product-images', ProductImageController::class)->except(['index', 'show']);
+        Route::apiResource('product-units', ProductUnitController::class)->except(['index', 'show']);
         Route::apiResource('banners', BannerController::class);
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Features Management
-        |--------------------------------------------------------------------------
-        */
-
         Route::apiResource('features', FeatureController::class);
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Partners Management
-        |--------------------------------------------------------------------------
-        */
-
         Route::apiResource('partners', PartnerController::class)->except(['index', 'show']);
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Settings Management
-        |--------------------------------------------------------------------------
-        */
-
         Route::apiResource('settings', SettingController::class);
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Internal Notifications
-        |--------------------------------------------------------------------------
-        | Admin فقط
-        |--------------------------------------------------------------------------
-        */
-
-        Route::apiResource(
-            'internal-notifications',
-            InternalNotificationController::class
-        );
+        Route::apiResource('internal-notifications', InternalNotificationController::class);
     });
 
-
     /*
     |--------------------------------------------------------------------------
-    | ADDRESSES
+    | ADMIN PREFIX WITH PERMISSIONS
     |--------------------------------------------------------------------------
-    | المستخدم المسجل يستطيع إدارة عناوينه
-    |--------------------------------------------------------------------------
-    |
-    | الوصول هنا يعتمد على Permissions.
-    |
     */
-
     Route::prefix('admin')->group(function () {
 
+        /* Users */
+        Route::middleware('permission:view-users')->get('/users', [UserController::class, 'index']);
+        Route::middleware('permission:view-users')->get('/users/{user}', [UserController::class, 'show']);
+        Route::middleware('permission:create-users')->post('/users', [UserController::class, 'store']);
+        Route::middleware('permission:update-users')->match(['put', 'patch'], '/users/{user}', [UserController::class, 'update']);
+        Route::middleware('permission:delete-users')->delete('/users/{user}', [UserController::class, 'destroy']);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Users
-        |--------------------------------------------------------------------------
-        */
+        /* Roles */
+        Route::middleware('permission:view-roles')->get('/roles', [RoleController::class, 'index']);
+        Route::middleware('permission:view-roles')->get('/roles/{role}', [RoleController::class, 'show']);
+        Route::middleware('permission:create-roles')->post('/roles', [RoleController::class, 'store']);
+        Route::middleware('permission:update-roles')->match(['put', 'patch'], '/roles/{role}', [RoleController::class, 'update']);
+        Route::middleware('permission:delete-roles')->delete('/roles/{role}', [RoleController::class, 'destroy']);
 
-        Route::middleware('permission:view-users')
-            ->get('/users', [
-                UserController::class,
-                'index'
-            ]);
+        /* Permissions */
+        Route::middleware('permission:view-roles')->get('/permissions', [RoleController::class, 'permissions']);
+        Route::middleware('permission:view-roles')->get('/permissions/{id}', [RoleController::class, 'showPermission']);
+        Route::middleware('permission:create-roles')->post('/permissions', [RoleController::class, 'storePermission']);
+        Route::middleware('permission:update-roles')->match(['put', 'patch'], '/permissions/{id}', [RoleController::class, 'updatePermission']);
+        Route::middleware('permission:delete-roles')->delete('/permissions/{id}', [RoleController::class, 'destroyPermission']);
 
-        Route::middleware('permission:view-users')
-            ->get('/users/{user}', [
-                UserController::class,
-                'show'
-            ]);
+        /* Role-Permission Assignments */
+        Route::middleware('permission:update-roles')->post('/roles/{roleId}/permissions', [RoleController::class, 'assignPermission']);
+        Route::middleware('permission:update-roles')->delete('/roles/{roleId}/permissions', [RoleController::class, 'removePermission']);
 
-        Route::middleware('permission:create-users')
-            ->post('/users', [
-                UserController::class,
-                'store'
-            ]);
+        /* Banners, Features, Partners, Settings */
+        Route::middleware('permission:manage-banners')->post('/banners', [BannerController::class, 'store']);
+        Route::middleware('permission:manage-banners')->match(['put', 'patch'], '/banners/{banner}', [BannerController::class, 'update']);
+        Route::middleware('permission:manage-banners')->delete('/banners/{banner}', [BannerController::class, 'destroy']);
 
-        Route::middleware('permission:update-users')
-            ->match(['put', 'patch'], '/users/{user}', [
-                UserController::class,
-                'update'
-            ]);
+        Route::middleware('permission:manage-features')->post('/features', [FeatureController::class, 'store']);
+        Route::middleware('permission:manage-features')->match(['put', 'patch'], '/features/{feature}', [FeatureController::class, 'update']);
+        Route::middleware('permission:manage-features')->delete('/features/{feature}', [FeatureController::class, 'destroy']);
 
-        Route::middleware('permission:delete-users')
-            ->delete('/users/{user}', [
-                UserController::class,
-                'destroy'
-            ]);
+        Route::middleware('permission:manage-partners')->post('/partners', [PartnerController::class, 'store']);
+        Route::middleware('permission:manage-partners')->match(['put', 'patch'], '/partners/{partner}', [PartnerController::class, 'update']);
+        Route::middleware('permission:manage-partners')->delete('/partners/{partner}', [PartnerController::class, 'destroy']);
 
+        Route::middleware('permission:manage-settings')->post('/settings', [SettingController::class, 'store']);
+        Route::middleware('permission:manage-settings')->match(['put', 'patch'], '/settings/{setting}', [SettingController::class, 'update']);
+        Route::middleware('permission:manage-settings')->delete('/settings/{setting}', [SettingController::class, 'destroy']);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Roles
-        |--------------------------------------------------------------------------
-        */
+        /* 🛒 إدارة الطلبات للآدمن */
+        Route::middleware('permission:view-orders')->group(function () {
+            // استخدام apiResource لمعالجة store, update, destroy
+            Route::apiResource('orders', OrderController::class)->except(['index', 'show']);
 
-        Route::middleware('permission:view-roles')
-            ->get('/roles', [
-                RoleController::class,
-                'index'
-            ]);
+            // مسارات العرض الخاصة بالأدمن (لتفادي التعارض مع عرض طلبات الزبون)
+            Route::get('/orders', [OrderController::class, 'adminIndex']);
+            Route::get('/orders/{order}', [OrderController::class, 'adminShow']);
 
-        Route::middleware('permission:view-roles')
-            ->get('/roles/{role}', [
-                RoleController::class,
-                'show'
-            ]);
-
-        Route::middleware('permission:create-roles')
-            ->post('/roles', [
-                RoleController::class,
-                'store'
-            ]);
-
-        Route::middleware('permission:update-roles')
-            ->match(['put', 'patch'], '/roles/{role}', [
-                RoleController::class,
-                'update'
-            ]);
-
-        Route::middleware('permission:delete-roles')
-            ->delete('/roles/{role}', [
-                RoleController::class,
-                'destroy'
-            ]);
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Permissions
-        |--------------------------------------------------------------------------
-        */
-
-        Route::middleware('permission:view-roles')
-            ->get('/permissions', [
-                RoleController::class,
-                'permissions'
-            ]);
-
-        Route::middleware('permission:view-roles')
-            ->get('/permissions/{id}', [
-                RoleController::class,
-                'showPermission'
-            ]);
-
-        Route::middleware('permission:create-roles')
-            ->post('/permissions', [
-                RoleController::class,
-                'storePermission'
-            ]);
-
-        Route::middleware('permission:update-roles')
-            ->match(['put', 'patch'], '/permissions/{id}', [
-                RoleController::class,
-                'updatePermission'
-            ]);
-
-        Route::middleware('permission:delete-roles')
-            ->delete('/permissions/{id}', [
-                RoleController::class,
-                'destroyPermission'
-            ]);
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Assign Permission To Role
-        |--------------------------------------------------------------------------
-        */
-
-        Route::middleware('permission:update-roles')
-            ->post('/roles/{roleId}/permissions', [
-                RoleController::class,
-                'assignPermission'
-            ]);
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Remove Permission From Role
-        |--------------------------------------------------------------------------
-        */
-
-        Route::middleware('permission:update-roles')
-            ->delete('/roles/{roleId}/permissions', [
-                RoleController::class,
-                'removePermission'
-            ]);
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Banners
-        |--------------------------------------------------------------------------
-        */
-
-        Route::middleware('permission:manage-banners')
-            ->post('/banners', [
-                BannerController::class,
-                'store'
-            ]);
-
-        Route::middleware('permission:manage-banners')
-            ->match(['put', 'patch'], '/banners/{banner}', [
-                BannerController::class,
-                'update'
-            ]);
-
-        Route::middleware('permission:manage-banners')
-            ->delete('/banners/{banner}', [
-                BannerController::class,
-                'destroy'
-            ]);
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Features
-        |--------------------------------------------------------------------------
-        */
-
-        Route::middleware('permission:manage-features')
-            ->post('/features', [
-                FeatureController::class,
-                'store'
-            ]);
-
-        Route::middleware('permission:manage-features')
-            ->match(['put', 'patch'], '/features/{feature}', [
-                FeatureController::class,
-                'update'
-            ]);
-
-        Route::middleware('permission:manage-features')
-            ->delete('/features/{feature}', [
-                FeatureController::class,
-                'destroy'
-            ]);
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Partners
-        |--------------------------------------------------------------------------
-        */
-
-        Route::middleware('permission:manage-partners')
-            ->post('/partners', [
-                PartnerController::class,
-                'store'
-            ]);
-
-        Route::middleware('permission:manage-partners')
-            ->match(['put', 'patch'], '/partners/{partner}', [
-                PartnerController::class,
-                'update'
-            ]);
-
-        Route::middleware('permission:manage-partners')
-            ->delete('/partners/{partner}', [
-                PartnerController::class,
-                'destroy'
-            ]);
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Settings
-        |--------------------------------------------------------------------------
-        */
-
-        Route::middleware('permission:manage-settings')
-            ->post('/settings', [
-                SettingController::class,
-                'store'
-            ]);
-
-        Route::middleware('permission:manage-settings')
-            ->match(['put', 'patch'], '/settings/{setting}', [
-                SettingController::class,
-                'update'
-            ]);
-
-        Route::middleware('permission:manage-settings')
-            ->delete('/settings/{setting}', [
-                SettingController::class,
-                'destroy'
-            ]);
-    });
-
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | REVIEWS
-    |--------------------------------------------------------------------------
-    | المستخدم المسجل يستطيع إضافة مراجعة
-    |--------------------------------------------------------------------------
-    |
-    | لا نعتمد على role هنا.
-    | الـ Permission هي التي تحدد الوصول.
-    |
-    */
-
-    Route::post(
-        '/reviews',
-        [ReviewController::class, 'store']
-    );
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | CART
-    |--------------------------------------------------------------------------
-    */
-
-    Route::middleware('auth:sanctum')->group(function () {
-        Route::get('/cart/count', [CartController::class, 'count']);
-
-        Route::get('/cart', [
-            CartController::class,
-            'index'
-        ]);
-        Route::delete('/cart/clear', [
-            CartController::class,
-            'clear'
-        ]);
-        Route::apiResource('cart/items', CartItemController::class)
-            ->only([
-                'store',
-                'update',
-                'destroy'
-            ]);
+            // مسار تغيير الحالة والإحصائيات
+            Route::patch('/orders/{order}/status', [OrderController::class, 'updateStatus']);
+            Route::get('/dashboard/stats', [OrderController::class, 'dashboardStats']);
+        });
     });
 
     /*
     |--------------------------------------------------------------------------
-    | ORDERS
+    | REVIEWS, CART & USER ORDERS
     |--------------------------------------------------------------------------
     */
+    Route::post('/reviews', [ReviewController::class, 'store']);
 
-    Route::middleware('auth:sanctum')->group(function () {
-        Route::apiResource(
-            'orders',
-            OrderController::class
-        )
-            ->only(['store', 'index', 'show']);
+    Route::get('/cart/count', [CartController::class, 'count']);
+    Route::get('/cart', [CartController::class, 'index']);
+    Route::delete('/cart/clear', [CartController::class, 'clear']);
+    Route::apiResource('cart/items', CartItemController::class)->only(['store', 'update', 'destroy']);
 
-        Route::patch(
-            '/orders/{order}/cancel',
-            [OrderController::class, 'cancel']
-        );
-    });
+    Route::apiResource('orders', OrderController::class)->only(['store', 'index', 'show']);
+    Route::patch('/orders/{order}/cancel', [OrderController::class, 'cancel']);
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | TEMPORARY ADMIN TEST
-    |--------------------------------------------------------------------------
-    */
-
+    /* Test Admin Access */
     Route::middleware('role:admin')->get('/test-admin', function () {
-
-        return response()->json([
-            'message' => 'Admin access granted.'
-        ]);
+        return response()->json(['message' => 'Admin access granted.']);
     });
 });
