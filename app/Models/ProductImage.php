@@ -8,12 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 class ProductImage extends Model
 {
     protected $fillable = [
-        'product_id',
-        'image',
-        'is_main',
-        'sort_order',
-    ];
-
+    'product_id',
+    'image_path',
+    'is_main',
+    'sort_order',
+];
     public function product()
     {
         return $this->belongsTo(Product::class);
