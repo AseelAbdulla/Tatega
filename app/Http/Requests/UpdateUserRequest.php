@@ -3,51 +3,104 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateUserRequest extends FormRequest
 {
+    /**
+     * Determine if the user is authorized to make this request.
+     */
     public function authorize(): bool
     {
         return true;
     }
 
-
-
+    /**
+     * Get validation rules.
+     */
     public function rules(): array
     {
-
         $id = $this->route('user');
 
-
         return [
+            'name' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
 
-            'name' => 'nullable|string|max:255',
+            'email' => [
+                'nullable',
+                'email',
+                'max:255',
+                Rule::unique('users', 'email')->ignore($id),
+            ],
 
-            'email' => 'nullable|email|unique:users,email,' . $id,
+            'phone' => [
+                'nullable',
+                'string',
+                'max:20',
+                Rule::unique('users', 'phone')->ignore($id),
+            ],
 
-            'phone' => 'nullable|unique:users,phone,' . $id,
+            /*
+             * كلمة المرور اختيارية في التعديل
+             */
+            'password' => [
+                'nullable',
+                'string',
+                'min:8',
+                'confirmed',
+            ],
 
-            'password' => 'nullable|min:8',
+            'status' => [
+                'nullable',
+                'in:active,inactive',
+            ],
 
-            'status' => 'nullable|string|max:50',
+            /*
+             * اسم الدور وليس role_id
+             */
+            'role' => [
+                'nullable',
+                'string',
+                Rule::exists('roles', 'name')
+                    ->where('guard_name', 'sanctum'),
+            ],
 
-            'role_id' => 'nullable|exists:roles,id'
-
+            'customer_type' => [
+                'nullable',
+                'in:local,international',
+            ],
         ];
     }
 
-
-
+    /**
+     * Custom validation messages.
+     */
     public function messages(): array
     {
         return [
+            'email.unique' =>
+                'البريد الإلكتروني مستخدم بالفعل.',
 
-            'email.unique' => 'Email already exists',
+            'phone.unique' =>
+                'رقم الجوال مستخدم بالفعل.',
 
-            'phone.unique' => 'Phone number already exists',
+            'password.min' =>
+                'كلمة المرور يجب أن تكون 8 أحرف على الأقل.',
 
-            'role_id.exists' => 'Selected role does not exist'
+            'password.confirmed' =>
+                'كلمتا المرور غير متطابقتين.',
 
+            'role.exists' =>
+                'الدور المحدد غير موجود.',
+
+            'status.in' =>
+                'حالة الحساب غير صحيحة.',
+
+            'customer_type.in' =>
+                'نوع العميل غير صحيح.',
         ];
     }
 }

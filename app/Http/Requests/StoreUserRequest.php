@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreUserRequest extends FormRequest
 {
@@ -20,11 +21,53 @@ class StoreUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:8|confirmed',
-            'phone' => 'nullable|string|max:20',
-            'role_id' => 'nullable|exists:roles,id',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
+            'email' => [
+                'required',
+                'email',
+                'max:255',
+                'unique:users,email',
+            ],
+
+            'phone' => [
+                'nullable',
+                'string',
+                'max:20',
+                'unique:users,phone',
+            ],
+
+            'password' => [
+                'required',
+                'string',
+                'min:8',
+                'confirmed',
+            ],
+
+            /*
+             * Frontend يرسل اسم الدور
+             * وليس role_id
+             */
+            'role' => [
+                'required',
+                'string',
+                Rule::exists('roles', 'name')
+                    ->where('guard_name', 'sanctum'),
+            ],
+
+            'status' => [
+                'nullable',
+                'in:active,inactive',
+            ],
+
+            'customer_type' => [
+                'nullable',
+                'in:local,international',
+            ],
         ];
     }
 
@@ -34,14 +77,41 @@ class StoreUserRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' => 'Name is required.',
-            'email.required' => 'Email is required.',
-            'email.email' => 'Email format is invalid.',
-            'email.unique' => 'Email already exists.',
-            'password.required' => 'Password is required.',
-            'password.confirmed' => 'Password confirmation does not match.',
-            'password.min' => 'Password must be at least 8 characters.',
-            'role_id.exists' => 'Selected role does not exist.',
+            'name.required' =>
+                'يرجى إدخال اسم المستخدم.',
+
+            'email.required' =>
+                'يرجى إدخال البريد الإلكتروني.',
+
+            'email.email' =>
+                'صيغة البريد الإلكتروني غير صحيحة.',
+
+            'email.unique' =>
+                'البريد الإلكتروني مستخدم بالفعل.',
+
+            'phone.unique' =>
+                'رقم الجوال مستخدم بالفعل.',
+
+            'password.required' =>
+                'يرجى إدخال كلمة المرور.',
+
+            'password.min' =>
+                'كلمة المرور يجب أن تكون 8 أحرف على الأقل.',
+
+            'password.confirmed' =>
+                'كلمتا المرور غير متطابقتين.',
+
+            'role.required' =>
+                'يرجى اختيار دور المستخدم.',
+
+            'role.exists' =>
+                'الدور المحدد غير موجود.',
+
+            'status.in' =>
+                'حالة الحساب غير صحيحة.',
+
+            'customer_type.in' =>
+                'نوع العميل غير صحيح.',
         ];
     }
 }

@@ -7,91 +7,85 @@ use Illuminate\Support\Facades\Hash;
 
 class UserService
 {
-
     /**
      * Get all users
      */
     public function getAllUsers()
     {
         return User::with('roles')
+            ->with('addresses')
             ->select(
                 'id',
                 'name',
                 'email',
                 'phone',
-                'status'
+                'status',
+                'created_at',
+                'updated_at'
             )
+            ->latest()
             ->get();
     }
-
-
 
     /**
      * Create new user
      */
     public function createUser(array $data)
     {
-
+        /*
+         * Create user
+         */
         $user = User::create([
-
             'name' => $data['name'],
-
             'email' => $data['email'],
-
-            'phone' => $data['phone'],
-
+            'phone' => $data['phone'] ?? null,
             'password' => Hash::make($data['password']),
-
-            'status' => 'active'
-
+            'status' => $data['status'] ?? 'active',
         ]);
 
+        /*
+         * Assign Spatie role
+         */
+        if (!empty($data['role'])) {
+            $user->assignRole($data['role']);
+        }
 
-        // Assign role to user
-        $user->roles()->attach($data['role_id']);
-
-
-        return $user->load('roles');
-
+        /*
+         * Return user with role
+         */
+        return $user->load([
+            'roles',
+            'addresses',
+        ]);
     }
 
-
-
-
-
     /**
-     * Get user by id
+     * Get user by ID
      */
     public function getUserById($id)
     {
-
-        return User::with('roles')
-            ->find($id);
-
+        return User::with([
+            'roles',
+            'addresses',
+            'orders',
+        ])->find($id);
     }
-
-
-
-
 
     /**
      * Update user
      */
     public function updateUser($id, array $data)
     {
-
         $user = User::find($id);
 
-
-        if(!$user)
-        {
+        if (!$user) {
             return null;
         }
 
-
-
+        /*
+         * Update basic information
+         */
         $user->update([
-
             'name' => $data['name'] ?? $user->name,
 
             'email' => $data['email'] ?? $user->email,
@@ -99,69 +93,65 @@ class UserService
             'phone' => $data['phone'] ?? $user->phone,
 
             'status' => $data['status'] ?? $user->status,
-
         ]);
 
-
-
-        if(isset($data['password']))
-        {
-
-            $user->password = Hash::make($data['password']);
+        /*
+         * Update password
+         */
+        if (
+            isset($data['password']) &&
+            !empty($data['password'])
+        ) {
+            $user->password = Hash::make(
+                $data['password']
+            );
 
             $user->save();
-
         }
 
-
-
-        // Update role
-        if(isset($data['role_id']))
-        {
-
-            $user->roles()->sync([
-                $data['role_id']
+        /*
+         * Update Spatie role
+         */
+        if (
+            isset($data['role']) &&
+            !empty($data['role'])
+        ) {
+            $user->syncRoles([
+                $data['role'],
             ]);
-
         }
 
-
-
-        return $user->load('roles');
-
+        /*
+         * Return updated user
+         */
+        return $user->load([
+            'roles',
+            'addresses',
+            'orders',
+        ]);
     }
-
-
-
-
 
     /**
      * Delete user
      */
     public function deleteUser($id)
     {
-
         $user = User::find($id);
 
-
-        if(!$user)
-        {
+        if (!$user) {
             return false;
         }
 
+        /*
+         * Remove Spatie roles
+         */
+        $user->syncRoles([]);
 
-
-        // Remove roles relation
-        $user->roles()->detach();
-
-
-        // Delete user
+        /*
+         * Delete user
+         */
         $user->delete();
 
-
-
         return true;
-
     }
-
 }
