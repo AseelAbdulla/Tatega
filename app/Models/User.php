@@ -19,13 +19,12 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $guard_name = 'sanctum';
 
     protected $fillable = [
-        'name',
-        'email',
-        'phone',
-        'password',
-        'status',
-         'role',
-    ];
+    'name',
+    'email',
+    'phone',
+    'password',
+    'status',
+];
 
     protected $hidden = [
         'password',

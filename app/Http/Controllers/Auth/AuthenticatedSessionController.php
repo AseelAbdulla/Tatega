@@ -8,21 +8,13 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
-
 class AuthenticatedSessionController extends Controller
 {
     /**
-     * Handle login request (API Sanctum)
+     * Handle login request
      */
     public function store(LoginRequest $request): JsonResponse
     {
-        // Validation
-        $request->validate([
-            'email' => [
-                'required',
-                'email'
-            ],
-
         $user = $request->user();
 
         $token = $user->createToken('auth-token')->plainTextToken;
@@ -35,19 +27,17 @@ class AuthenticatedSessionController extends Controller
         ], 200);
     }
 
-
-
     /**
      * Logout API
      */
-  public function destroy(Request $request): Response
-{
-    $user = $request->user();
+    public function destroy(Request $request): Response
+    {
+        $user = $request->user();
 
-    if ($user && $user->currentAccessToken()) {
-        $user->currentAccessToken()->delete();
+        if ($user && $user->currentAccessToken()) {
+            $user->currentAccessToken()->delete();
+        }
+
+        return response()->noContent();
     }
-
-    return response()->noContent();
 }
-  }
