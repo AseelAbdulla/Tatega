@@ -16,16 +16,15 @@ class ProductController extends Controller
 
 
     // عرض جميع المنتجات
-    public function index()
-    {
+   public function index()
+{
+    $products = Product::with([
+        'category',
+        'images',
+    ])->get();
 
-        $products = Product::with('category')
-            ->get();
-
-
-        return ProductResource::collection($products);
-
-    }
+    return ProductResource::collection($products);
+}
 
 
 
