@@ -6,44 +6,38 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateProductImageRequest extends FormRequest
 {
-
     public function authorize(): bool
     {
         return true;
     }
-
 
     public function rules(): array
     {
         return [
 
             'product_id' => [
-                'required',
+                'sometimes',
                 'exists:products,id'
             ],
 
-
             'image' => [
-                'nullable',
+                'sometimes',
                 'image',
                 'mimes:jpeg,png,jpg,gif,svg',
                 'max:2048'
             ],
 
-
             'is_main' => [
-                'nullable',
+                'sometimes',
                 'boolean'
             ],
 
-
             'sort_order' => [
-                'nullable',
+                'sometimes',
                 'integer',
                 'min:0'
             ],
 
         ];
     }
-
 }
