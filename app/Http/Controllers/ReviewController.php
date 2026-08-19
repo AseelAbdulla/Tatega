@@ -10,11 +10,9 @@ use App\Http\Requests\UpdateReviewRequest;
 
 class ReviewController extends Controller
 {
-
     public function __construct(
         protected ReviewService $reviewService
     ) {}
-
 
     public function index()
     {
@@ -22,7 +20,6 @@ class ReviewController extends Controller
             $this->reviewService->index()
         );
     }
-
 
     public function store(StoreReviewRequest $request)
     {
@@ -33,7 +30,6 @@ class ReviewController extends Controller
         return new ReviewResource($review);
     }
 
-
     public function show(Review $review)
     {
         return new ReviewResource(
@@ -41,9 +37,10 @@ class ReviewController extends Controller
         );
     }
 
-
-    public function update(UpdateReviewRequest $request, Review $review)
-    {
+    public function update(
+        UpdateReviewRequest $request,
+        Review $review
+    ) {
         $review = $this->reviewService->update(
             $review,
             $request->validated()
@@ -51,7 +48,6 @@ class ReviewController extends Controller
 
         return new ReviewResource($review);
     }
-
 
     public function destroy(Review $review)
     {

@@ -42,24 +42,25 @@ class SettingController extends Controller
     }
 
 
-    public function update(UpdateSettingRequest $request, Setting $setting)
-    {
-        $setting = $this->settingService->update(
-            $setting,
-            $request->validated()
-        );
+  public function update(UpdateSettingRequest $request, Setting $setting)
+{
+    $setting = $this->settingService->update(
+        $setting,
+        $request->validated()
+    );
 
-        return new SettingResource($setting);
-    }
+    return new SettingResource($setting);
+}
 
+public function destroy(Setting $setting)
+{
+    $this->settingService->destroy($setting);
 
-    public function destroy(Setting $setting)
-    {
-        $this->settingService->destroy($setting);
+    return response()->json([
+        'status' => 'success',
+        'message' => 'تم حذف الإعداد بنجاح'
+    ]);
+}
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'تم حذف الإعداد بنجاح'
-        ]);
-    }
+    
 }

@@ -1,4 +1,3 @@
-
 <?php
 
 use Illuminate\Http\Request;
@@ -7,6 +6,9 @@ use Illuminate\Support\Facades\Route;
 // Controllers
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Auth\EmailVerificationNotificationController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\AddressController;
 use App\Http\Controllers\BannerController;
 use App\Http\Controllers\CartController;
@@ -27,61 +29,140 @@ use App\Http\Controllers\SettingController;
 |--------------------------------------------------------------------------
 | PUBLIC ROUTES
 |--------------------------------------------------------------------------
-| هذه العمليات يمكن للزائر الوصول إليها بدون تسجيل دخول
+| العمليات التي يمكن للزائر الوصول إليها بدون تسجيل دخول
 |--------------------------------------------------------------------------
 */
 
 
-// Categories - Public Read
+/*
+|--------------------------------------------------------------------------
+| AUTHENTICATION
+|--------------------------------------------------------------------------
+*/
+
+Route::post('/login', [AuthenticatedSessionController::class, 'store']);
+
+
+/*
+|--------------------------------------------------------------------------
+| CATEGORIES - PUBLIC READ
+|--------------------------------------------------------------------------
+*/
+
 Route::apiResource('categories', CategoryController::class)
     ->only(['index', 'show']);
 
 
-// Products - Public Read
+/*
+|--------------------------------------------------------------------------
+| PRODUCTS - PUBLIC READ
+|--------------------------------------------------------------------------
+*/
+
 Route::apiResource('products', ProductController::class)
     ->only(['index', 'show']);
 
 
-// Product Images - Public Read
+/*
+|--------------------------------------------------------------------------
+| PRODUCT IMAGES - PUBLIC READ
+|--------------------------------------------------------------------------
+*/
+
 Route::apiResource('product-images', ProductImageController::class)
     ->only(['index', 'show']);
 
 
-// Product Units - Public Read
+/*
+|--------------------------------------------------------------------------
+| PRODUCT UNITS - PUBLIC READ
+|--------------------------------------------------------------------------
+*/
+
 Route::apiResource('product-units', ProductUnitController::class)
     ->only(['index', 'show']);
 
 
-// Banners - Public
+/*
+|--------------------------------------------------------------------------
+| BANNERS - PUBLIC READ
+|--------------------------------------------------------------------------
+*/
+
 Route::apiResource('banners', BannerController::class)
     ->only(['index', 'show']);
 
 
-// Features - Public
-Route::apiResource('features', FeatureController::class)
-    ->only(['index', 'show']);
+/*
+|--------------------------------------------------------------------------
+| FEATURES - PUBLIC READ
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/features', [FeatureController::class, 'index']);
+
+Route::get('/features/{feature}', [FeatureController::class, 'show']);
 
 
-// Partners - Public
+/*
+|--------------------------------------------------------------------------
+| FEATURES - ADMIN
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
+
+    Route::post('/features', [FeatureController::class, 'store']);
+
+    Route::put('/features/{feature}', [FeatureController::class, 'update']);
+
+    Route::patch('/features/{feature}', [FeatureController::class, 'update']);
+
+    Route::delete('/features/{feature}', [FeatureController::class, 'destroy']);
+
+});
+
+
+/*
+|--------------------------------------------------------------------------
+| PARTNERS - PUBLIC READ
+|--------------------------------------------------------------------------
+*/
+
 Route::apiResource('partners', PartnerController::class)
     ->only(['index', 'show']);
 
 
-// Settings - Public Read
+/*
+|--------------------------------------------------------------------------
+| SETTINGS - PUBLIC READ
+|--------------------------------------------------------------------------
+*/
+
 Route::apiResource('settings', SettingController::class)
     ->only(['index', 'show']);
 
 
-// Reviews - Public Read
-Route::apiResource('reviews', ReviewController::class)
-    ->only(['index', 'show']);
+/*
+|--------------------------------------------------------------------------
+| REVIEWS - PUBLIC READ
+|--------------------------------------------------------------------------
+| أي زائر يستطيع مشاهدة التقييمات
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/reviews', [ReviewController::class, 'index'])
+    ->name('reviews.index');
+
+Route::get('/reviews/{review}', [ReviewController::class, 'show'])
+    ->name('reviews.show');
 
 
 /*
 |--------------------------------------------------------------------------
 | PROTECTED ROUTES
 |--------------------------------------------------------------------------
-| تحتاج تسجيل دخول باستخدام Sanctum
+| تحتاج إلى تسجيل دخول باستخدام Sanctum
 |--------------------------------------------------------------------------
 */
 
@@ -104,7 +185,6 @@ Route::middleware('auth:sanctum')->group(function () {
     );
 
 
-
     /*
     |--------------------------------------------------------------------------
     | ADMIN ONLY
@@ -116,7 +196,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         /*
         |--------------------------------------------------------------------------
-        | Users Management
+        | USERS MANAGEMENT
         |--------------------------------------------------------------------------
         */
 
@@ -125,7 +205,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         /*
         |--------------------------------------------------------------------------
-        | Roles Management
+        | ROLES MANAGEMENT
         |--------------------------------------------------------------------------
         */
 
@@ -134,7 +214,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         /*
         |--------------------------------------------------------------------------
-        | Categories Management
+        | CATEGORIES MANAGEMENT
         |--------------------------------------------------------------------------
         */
 
@@ -144,7 +224,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         /*
         |--------------------------------------------------------------------------
-        | Products Management
+        | PRODUCTS MANAGEMENT
         |--------------------------------------------------------------------------
         */
 
@@ -154,7 +234,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         /*
         |--------------------------------------------------------------------------
-        | Product Images Management
+        | PRODUCT IMAGES MANAGEMENT
         |--------------------------------------------------------------------------
         */
 
@@ -164,7 +244,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         /*
         |--------------------------------------------------------------------------
-        | Product Units Management
+        | PRODUCT UNITS MANAGEMENT
         |--------------------------------------------------------------------------
         */
 
@@ -174,25 +254,17 @@ Route::middleware('auth:sanctum')->group(function () {
 
         /*
         |--------------------------------------------------------------------------
-        | Banners Management
+        | BANNERS MANAGEMENT
         |--------------------------------------------------------------------------
         */
 
-        Route::apiResource('banners', BannerController::class);
+        Route::apiResource('banners', BannerController::class)
+            ->except(['index', 'show']);
 
 
         /*
         |--------------------------------------------------------------------------
-        | Features Management
-        |--------------------------------------------------------------------------
-        */
-
-        Route::apiResource('features', FeatureController::class);
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Partners Management
+        | PARTNERS MANAGEMENT
         |--------------------------------------------------------------------------
         */
 
@@ -201,7 +273,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         /*
         |--------------------------------------------------------------------------
-        | Settings Management
+        | SETTINGS MANAGEMENT
         |--------------------------------------------------------------------------
         */
 
@@ -210,9 +282,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         /*
         |--------------------------------------------------------------------------
-        | Internal Notifications
-        |--------------------------------------------------------------------------
-        | Admin فقط
+        | INTERNAL NOTIFICATIONS
         |--------------------------------------------------------------------------
         */
 
@@ -221,6 +291,30 @@ Route::middleware('auth:sanctum')->group(function () {
             InternalNotificationController::class
         );
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | REVIEWS MANAGEMENT
+        |--------------------------------------------------------------------------
+        | Admin فقط يستطيع تعديل وحذف التقييمات
+        |--------------------------------------------------------------------------
+        */
+
+        Route::put(
+            '/reviews/{review}',
+            [ReviewController::class, 'update']
+        )->name('reviews.update');
+
+        Route::patch(
+            '/reviews/{review}',
+            [ReviewController::class, 'update']
+        );
+
+        Route::delete(
+            '/reviews/{review}',
+            [ReviewController::class, 'destroy']
+        )->name('reviews.destroy');
+
     });
 
 
@@ -228,11 +322,8 @@ Route::middleware('auth:sanctum')->group(function () {
     |--------------------------------------------------------------------------
     | ADDRESSES
     |--------------------------------------------------------------------------
-    | المستخدم المسجل يستطيع إدارة عناوينه
+    | المستخدم المسجل يستطيع إدارة عناوينه حسب الصلاحيات
     |--------------------------------------------------------------------------
-    |
-    | الوصول هنا يعتمد على Permissions.
-    |
     */
 
     Route::prefix('admin')->group(function () {
@@ -240,7 +331,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         /*
         |--------------------------------------------------------------------------
-        | Users
+        | USERS
         |--------------------------------------------------------------------------
         */
 
@@ -277,7 +368,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         /*
         |--------------------------------------------------------------------------
-        | Roles
+        | ROLES
         |--------------------------------------------------------------------------
         */
 
@@ -314,7 +405,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         /*
         |--------------------------------------------------------------------------
-        | Permissions
+        | PERMISSIONS
         |--------------------------------------------------------------------------
         */
 
@@ -351,7 +442,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         /*
         |--------------------------------------------------------------------------
-        | Assign Permission To Role
+        | ASSIGN PERMISSION TO ROLE
         |--------------------------------------------------------------------------
         */
 
@@ -364,7 +455,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         /*
         |--------------------------------------------------------------------------
-        | Remove Permission From Role
+        | REMOVE PERMISSION FROM ROLE
         |--------------------------------------------------------------------------
         */
 
@@ -377,7 +468,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         /*
         |--------------------------------------------------------------------------
-        | Banners
+        | BANNERS
         |--------------------------------------------------------------------------
         */
 
@@ -402,7 +493,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         /*
         |--------------------------------------------------------------------------
-        | Features
+        | FEATURES
         |--------------------------------------------------------------------------
         */
 
@@ -427,7 +518,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         /*
         |--------------------------------------------------------------------------
-        | Partners
+        | PARTNERS
         |--------------------------------------------------------------------------
         */
 
@@ -452,7 +543,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         /*
         |--------------------------------------------------------------------------
-        | Settings
+        | SETTINGS
         |--------------------------------------------------------------------------
         */
 
@@ -473,20 +564,16 @@ Route::middleware('auth:sanctum')->group(function () {
                 SettingController::class,
                 'destroy'
             ]);
-    });
 
+    });
 
 
     /*
     |--------------------------------------------------------------------------
-    | REVIEWS
+    | REVIEWS - CREATE
     |--------------------------------------------------------------------------
-    | المستخدم المسجل يستطيع إضافة مراجعة
+    | المستخدم المسجل يستطيع إضافة تقييم
     |--------------------------------------------------------------------------
-    |
-    | لا نعتمد على role هنا.
-    | الـ Permission هي التي تحدد الوصول.
-    |
     */
 
     Route::post(

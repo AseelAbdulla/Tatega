@@ -14,26 +14,32 @@ class StoreBannerRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'image_path' => 'required|string|max:255',
+            'image' => 'required|image|mimes:jpg,jpeg,png,webp|max:5120',
+
             'slogan' => 'nullable|array',
+            'slogan.ar' => 'nullable|string',
+            'slogan.en' => 'nullable|string',
+
             'sort_order' => 'nullable|integer',
-            'status' => 'nullable|string|max:50',
+            'status' => 'nullable|in:active,inactive',
         ];
     }
 
     public function messages(): array
     {
         return [
-            'image_path.required' => 'مسار الصورة مطلوب.',
-            'image_path.string' => 'مسار الصورة يجب أن يكون نصاً.',
-            'image_path.max' => 'مسار الصورة طويل جداً.',
+            'image.required' => 'صورة البنر مطلوبة.',
+            'image.image' => 'الملف يجب أن يكون صورة.',
+            'image.mimes' => 'صيغة الصورة يجب أن تكون jpg أو jpeg أو png أو webp.',
+            'image.max' => 'حجم الصورة يجب ألا يتجاوز 5 ميجابايت.',
 
-            'slogan.array' => 'الشعار يجب أن يكون مصفوفة.',
+            'slogan.array' => 'النص يجب أن يكون بصيغة صحيحة.',
+            'slogan.ar.string' => 'النص العربي يجب أن يكون نصاً.',
+            'slogan.en.string' => 'النص الإنجليزي يجب أن يكون نصاً.',
 
             'sort_order.integer' => 'ترتيب العرض يجب أن يكون رقماً صحيحاً.',
 
-            'status.string' => 'الحالة يجب أن تكون نصاً.',
-            'status.max' => 'الحالة طويلة جداً.',
+            'status.in' => 'حالة البنر يجب أن تكون active أو inactive.',
         ];
     }
 }

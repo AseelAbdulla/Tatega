@@ -17,13 +17,14 @@ class AuthenticatedSessionController extends Controller
     public function store(LoginRequest $request): JsonResponse
     {
         // Validation
-        $request->validate([
-            'email' => [
-                'required',
-                'email'
-            ],
+      $request->validate([
+    'email' => [
+        'required',
+        'email',
+    ],
+]);
 
-        $user = $request->user();
+$user = $request->user();
 
         $token = $user->createToken('auth-token')->plainTextToken;
 
