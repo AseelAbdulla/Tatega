@@ -19,7 +19,7 @@ class StoreFeatureRequest extends FormRequest
             'title' => 'required|array',
             'description' => 'required|array',
             'sort_order' => 'nullable|integer',
-            'status' => 'nullable|string|max:50',
+            'status' => 'nullable|in:active,inactive',
         ];
     }
 }

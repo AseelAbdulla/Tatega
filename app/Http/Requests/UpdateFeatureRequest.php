@@ -16,10 +16,15 @@ class UpdateFeatureRequest extends FormRequest
     {
         return [
             'icon' => 'sometimes|string|max:100',
-            'title' => 'nullable|array',
-            'description' => 'nullable|array',
+            'title' => 'sometimes|array',
+            'title.ar' => 'sometimes|string',
+            'title.en' => 'sometimes|string',
+
+            'description' => 'sometimes|array',
+            'description.ar' => 'sometimes|string',
+            'description.en' => 'sometimes|string',
             'sort_order' => 'nullable|integer',
-            'status' => 'nullable|string|max:50',
+            'status' => 'nullable|in:active,inactive',
         ];
     }
 }
