@@ -8,17 +8,17 @@ use App\Services\UserService;
 
 class UserController extends Controller
 {
-    protected $userService;
-
+    protected UserService $userService;
 
     public function __construct(UserService $userService)
     {
         $this->userService = $userService;
     }
 
-
     /**
+     * =========================================================
      * Display all users
+     * =========================================================
      */
     public function index()
     {
@@ -26,13 +26,17 @@ class UserController extends Controller
 
         return response()->json([
             'status' => true,
-            'data' => $users
-        ]);
+
+            'message' => 'تم جلب المستخدمين بنجاح.',
+
+            'data' => $users,
+        ], 200);
     }
 
-
     /**
+     * =========================================================
      * Store user
+     * =========================================================
      */
     public function store(StoreUserRequest $request)
     {
@@ -41,76 +45,92 @@ class UserController extends Controller
         );
 
         return response()->json([
-            'message' => 'User created successfully',
-            'data' => $user
+            'status' => true,
+
+            'message' => 'تم إنشاء المستخدم بنجاح.',
+
+            'data' => $user,
         ], 201);
     }
 
-
     /**
-     * Display user
+     * =========================================================
+     * Display one user
+     * =========================================================
      */
     public function show(string $id)
     {
         $user = $this->userService->getUserById($id);
 
         if (!$user) {
-
             return response()->json([
-                'message' => 'User not found'
-            ], 404);
+                'status' => false,
 
+                'message' => 'المستخدم غير موجود.',
+            ], 404);
         }
 
         return response()->json([
             'status' => true,
-            'data' => $user
-        ]);
+
+            'message' => 'تم جلب بيانات المستخدم بنجاح.',
+
+            'data' => $user,
+        ], 200);
     }
 
-
     /**
+     * =========================================================
      * Update user
+     * =========================================================
      */
-    public function update(UpdateUserRequest $request, string $id)
-    {
+    public function update(
+        UpdateUserRequest $request,
+        string $id
+    ) {
         $user = $this->userService->updateUser(
             $id,
             $request->validated()
         );
 
         if (!$user) {
-
             return response()->json([
-                'message' => 'User not found'
-            ], 404);
+                'status' => false,
 
+                'message' => 'المستخدم غير موجود.',
+            ], 404);
         }
 
         return response()->json([
-            'message' => 'User updated successfully',
-            'data' => $user
-        ]);
+            'status' => true,
+
+            'message' => 'تم تحديث المستخدم بنجاح.',
+
+            'data' => $user,
+        ], 200);
     }
 
-
     /**
+     * =========================================================
      * Delete user
+     * =========================================================
      */
     public function destroy(string $id)
     {
         $deleted = $this->userService->deleteUser($id);
 
         if (!$deleted) {
-
             return response()->json([
-                'message' => 'User not found'
-            ], 404);
+                'status' => false,
 
+                'message' => 'المستخدم غير موجود.',
+            ], 404);
         }
 
         return response()->json([
-            'message' => 'User deleted successfully'
-        ]);
+            'status' => true,
+
+            'message' => 'تم حذف المستخدم بنجاح.',
+        ], 200);
     }
 }

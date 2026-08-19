@@ -78,7 +78,7 @@ class OrderFactory extends Factory
             ]),
 
 
-            'payment_recepit' => 'order/default.jpg',
+            'payment_receipt' => 'order/default.jpg',
         ];
     }
 }

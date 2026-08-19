@@ -25,10 +25,22 @@ class CartService
                 'details.product.images:id,product_id,image_path',
                 'details.product.category:id,name',
                 'details.product:id,category_id,name,sku',
-                'details.unit:id,unit_name'
+                'details.unit:id,unit_name',
+                'user.addresses',
             ]);
     }
 
+
+    /**
+     * جلب إجمالي عدد القطع في سلة المستخدم
+     */
+    public function getCartCount(int $userId): int
+    {
+        $totalQuantity = CartDetail::whereHas('cart', function($query) use ($userId){
+$query->where('user_id', $userId);
+        })->sum('quantity');
+        return (int) ($totalQuantity ?? 0);
+    }
 
 
     /**

@@ -12,7 +12,7 @@ class PartnerResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'logo' => $this->logo,
+            'logo' => $this->logo ? asset('storage/' . $this->logo) : null,
             'website_url' => $this->website_url,
             'sort_order' => $this->sort_order,
             'status' => $this->status,

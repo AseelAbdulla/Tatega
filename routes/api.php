@@ -8,8 +8,6 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Auth\EmailVerificationNotificationController;
-use App\Http\Controllers\Auth\AuthenticatedSessionController;
-use App\Http\Controllers\AddressController;
 use App\Http\Controllers\BannerController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CartItemController;
@@ -29,7 +27,7 @@ use App\Http\Controllers\SettingController;
 |--------------------------------------------------------------------------
 | PUBLIC ROUTES
 |--------------------------------------------------------------------------
-| العمليات التي يمكن للزائر الوصول إليها بدون تسجيل دخول
+| المسارات التي يمكن الوصول إليها بدون تسجيل دخول
 |--------------------------------------------------------------------------
 */
 
@@ -40,7 +38,9 @@ use App\Http\Controllers\SettingController;
 |--------------------------------------------------------------------------
 */
 
-Route::post('/login', [AuthenticatedSessionController::class, 'store']);
+Route::post('/login', [AuthController::class, 'login']);
+
+Route::post('/register', [AuthController::class, 'register']);
 
 
 /*
@@ -99,28 +99,8 @@ Route::apiResource('banners', BannerController::class)
 |--------------------------------------------------------------------------
 */
 
-Route::get('/features', [FeatureController::class, 'index']);
-
-Route::get('/features/{feature}', [FeatureController::class, 'show']);
-
-
-/*
-|--------------------------------------------------------------------------
-| FEATURES - ADMIN
-|--------------------------------------------------------------------------
-*/
-
-Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
-
-    Route::post('/features', [FeatureController::class, 'store']);
-
-    Route::put('/features/{feature}', [FeatureController::class, 'update']);
-
-    Route::patch('/features/{feature}', [FeatureController::class, 'update']);
-
-    Route::delete('/features/{feature}', [FeatureController::class, 'destroy']);
-
-});
+Route::apiResource('features', FeatureController::class)
+    ->only(['index', 'show']);
 
 
 /*
@@ -147,7 +127,7 @@ Route::apiResource('settings', SettingController::class)
 |--------------------------------------------------------------------------
 | REVIEWS - PUBLIC READ
 |--------------------------------------------------------------------------
-| أي زائر يستطيع مشاهدة التقييمات
+| الزوار يستطيعون مشاهدة التقييمات المقبولة من خلال Controller
 |--------------------------------------------------------------------------
 */
 
@@ -160,18 +140,15 @@ Route::get('/reviews/{review}', [ReviewController::class, 'show'])
 
 /*
 |--------------------------------------------------------------------------
-| PROTECTED ROUTES
-|--------------------------------------------------------------------------
-| تحتاج إلى تسجيل دخول باستخدام Sanctum
+| PROTECTED ROUTES - SANCTUM
 |--------------------------------------------------------------------------
 */
 
 Route::middleware('auth:sanctum')->group(function () {
 
-
     /*
     |--------------------------------------------------------------------------
-    | CURRENT USER
+    | AUTHENTICATED USER
     |--------------------------------------------------------------------------
     */
 
@@ -187,12 +164,31 @@ Route::middleware('auth:sanctum')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
+    | USERS - VIEW
+    |--------------------------------------------------------------------------
+    | Admin و Employee يستطيعون عرض المستخدمين
+    | بشرط امتلاك permission:view-users
+    |--------------------------------------------------------------------------
+    */
+
+    Route::middleware([
+        'role:admin|employee',
+        'permission:view-users'
+    ])->group(function () {
+
+        Route::get('/users', [UserController::class, 'index']);
+
+        Route::get('/users/{user}', [UserController::class, 'show']);
+    });
+
+
+    /*
+    |--------------------------------------------------------------------------
     | ADMIN ONLY
     |--------------------------------------------------------------------------
     */
 
     Route::middleware('role:admin')->group(function () {
-
 
         /*
         |--------------------------------------------------------------------------
@@ -200,7 +196,18 @@ Route::middleware('auth:sanctum')->group(function () {
         |--------------------------------------------------------------------------
         */
 
-        Route::apiResource('users', UserController::class);
+        Route::post('/users', [UserController::class, 'store']);
+
+        Route::match(
+            ['put', 'patch'],
+            '/users/{user}',
+            [UserController::class, 'update']
+        );
+
+        Route::delete(
+            '/users/{user}',
+            [UserController::class, 'destroy']
+        );
 
 
         /*
@@ -264,11 +271,21 @@ Route::middleware('auth:sanctum')->group(function () {
 
         /*
         |--------------------------------------------------------------------------
+        | FEATURES MANAGEMENT
+        |--------------------------------------------------------------------------
+        */
+
+        Route::apiResource('features', FeatureController::class);
+
+
+        /*
+        |--------------------------------------------------------------------------
         | PARTNERS MANAGEMENT
         |--------------------------------------------------------------------------
         */
 
-        Route::apiResource('partners', PartnerController::class);
+        Route::apiResource('partners', PartnerController::class)
+            ->except(['index', 'show']);
 
 
         /*
@@ -296,7 +313,7 @@ Route::middleware('auth:sanctum')->group(function () {
         |--------------------------------------------------------------------------
         | REVIEWS MANAGEMENT
         |--------------------------------------------------------------------------
-        | Admin فقط يستطيع تعديل وحذف التقييمات
+        | Admin يستطيع الموافقة / تعديل / حذف التقييمات
         |--------------------------------------------------------------------------
         */
 
@@ -320,14 +337,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | ADDRESSES
-    |--------------------------------------------------------------------------
-    | المستخدم المسجل يستطيع إدارة عناوينه حسب الصلاحيات
+    | ADMIN - PERMISSION BASED
     |--------------------------------------------------------------------------
     */
 
     Route::prefix('admin')->group(function () {
-
 
         /*
         |--------------------------------------------------------------------------
@@ -336,34 +350,26 @@ Route::middleware('auth:sanctum')->group(function () {
         */
 
         Route::middleware('permission:view-users')
-            ->get('/users', [
-                UserController::class,
-                'index'
-            ]);
+            ->get('/users', [UserController::class, 'index']);
 
         Route::middleware('permission:view-users')
-            ->get('/users/{user}', [
-                UserController::class,
-                'show'
-            ]);
+            ->get('/users/{user}', [UserController::class, 'show']);
 
         Route::middleware('permission:create-users')
-            ->post('/users', [
-                UserController::class,
-                'store'
-            ]);
+            ->post('/users', [UserController::class, 'store']);
 
         Route::middleware('permission:update-users')
-            ->match(['put', 'patch'], '/users/{user}', [
-                UserController::class,
-                'update'
-            ]);
+            ->match(
+                ['put', 'patch'],
+                '/users/{user}',
+                [UserController::class, 'update']
+            );
 
         Route::middleware('permission:delete-users')
-            ->delete('/users/{user}', [
-                UserController::class,
-                'destroy'
-            ]);
+            ->delete(
+                '/users/{user}',
+                [UserController::class, 'destroy']
+            );
 
 
         /*
@@ -373,34 +379,26 @@ Route::middleware('auth:sanctum')->group(function () {
         */
 
         Route::middleware('permission:view-roles')
-            ->get('/roles', [
-                RoleController::class,
-                'index'
-            ]);
+            ->get('/roles', [RoleController::class, 'index']);
 
         Route::middleware('permission:view-roles')
-            ->get('/roles/{role}', [
-                RoleController::class,
-                'show'
-            ]);
+            ->get('/roles/{role}', [RoleController::class, 'show']);
 
         Route::middleware('permission:create-roles')
-            ->post('/roles', [
-                RoleController::class,
-                'store'
-            ]);
+            ->post('/roles', [RoleController::class, 'store']);
 
         Route::middleware('permission:update-roles')
-            ->match(['put', 'patch'], '/roles/{role}', [
-                RoleController::class,
-                'update'
-            ]);
+            ->match(
+                ['put', 'patch'],
+                '/roles/{role}',
+                [RoleController::class, 'update']
+            );
 
         Route::middleware('permission:delete-roles')
-            ->delete('/roles/{role}', [
-                RoleController::class,
-                'destroy'
-            ]);
+            ->delete(
+                '/roles/{role}',
+                [RoleController::class, 'destroy']
+            );
 
 
         /*
@@ -410,60 +408,54 @@ Route::middleware('auth:sanctum')->group(function () {
         */
 
         Route::middleware('permission:view-roles')
-            ->get('/permissions', [
-                RoleController::class,
-                'permissions'
-            ]);
+            ->get(
+                '/permissions',
+                [RoleController::class, 'permissions']
+            );
 
         Route::middleware('permission:view-roles')
-            ->get('/permissions/{id}', [
-                RoleController::class,
-                'showPermission'
-            ]);
+            ->get(
+                '/permissions/{id}',
+                [RoleController::class, 'showPermission']
+            );
 
         Route::middleware('permission:create-roles')
-            ->post('/permissions', [
-                RoleController::class,
-                'storePermission'
-            ]);
+            ->post(
+                '/permissions',
+                [RoleController::class, 'storePermission']
+            );
 
         Route::middleware('permission:update-roles')
-            ->match(['put', 'patch'], '/permissions/{id}', [
-                RoleController::class,
-                'updatePermission'
-            ]);
+            ->match(
+                ['put', 'patch'],
+                '/permissions/{id}',
+                [RoleController::class, 'updatePermission']
+            );
 
         Route::middleware('permission:delete-roles')
-            ->delete('/permissions/{id}', [
-                RoleController::class,
-                'destroyPermission'
-            ]);
+            ->delete(
+                '/permissions/{id}',
+                [RoleController::class, 'destroyPermission']
+            );
 
 
         /*
         |--------------------------------------------------------------------------
-        | ASSIGN PERMISSION TO ROLE
+        | ROLE - PERMISSION ASSIGNMENTS
         |--------------------------------------------------------------------------
         */
 
         Route::middleware('permission:update-roles')
-            ->post('/roles/{roleId}/permissions', [
-                RoleController::class,
-                'assignPermission'
-            ]);
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | REMOVE PERMISSION FROM ROLE
-        |--------------------------------------------------------------------------
-        */
+            ->post(
+                '/roles/{roleId}/permissions',
+                [RoleController::class, 'assignPermission']
+            );
 
         Route::middleware('permission:update-roles')
-            ->delete('/roles/{roleId}/permissions', [
-                RoleController::class,
-                'removePermission'
-            ]);
+            ->delete(
+                '/roles/{roleId}/permissions',
+                [RoleController::class, 'removePermission']
+            );
 
 
         /*
@@ -473,22 +465,23 @@ Route::middleware('auth:sanctum')->group(function () {
         */
 
         Route::middleware('permission:manage-banners')
-            ->post('/banners', [
-                BannerController::class,
-                'store'
-            ]);
+            ->post(
+                '/banners',
+                [BannerController::class, 'store']
+            );
 
         Route::middleware('permission:manage-banners')
-            ->match(['put', 'patch'], '/banners/{banner}', [
-                BannerController::class,
-                'update'
-            ]);
+            ->match(
+                ['put', 'patch'],
+                '/banners/{banner}',
+                [BannerController::class, 'update']
+            );
 
         Route::middleware('permission:manage-banners')
-            ->delete('/banners/{banner}', [
-                BannerController::class,
-                'destroy'
-            ]);
+            ->delete(
+                '/banners/{banner}',
+                [BannerController::class, 'destroy']
+            );
 
 
         /*
@@ -498,22 +491,23 @@ Route::middleware('auth:sanctum')->group(function () {
         */
 
         Route::middleware('permission:manage-features')
-            ->post('/features', [
-                FeatureController::class,
-                'store'
-            ]);
+            ->post(
+                '/features',
+                [FeatureController::class, 'store']
+            );
 
         Route::middleware('permission:manage-features')
-            ->match(['put', 'patch'], '/features/{feature}', [
-                FeatureController::class,
-                'update'
-            ]);
+            ->match(
+                ['put', 'patch'],
+                '/features/{feature}',
+                [FeatureController::class, 'update']
+            );
 
         Route::middleware('permission:manage-features')
-            ->delete('/features/{feature}', [
-                FeatureController::class,
-                'destroy'
-            ]);
+            ->delete(
+                '/features/{feature}',
+                [FeatureController::class, 'destroy']
+            );
 
 
         /*
@@ -523,22 +517,23 @@ Route::middleware('auth:sanctum')->group(function () {
         */
 
         Route::middleware('permission:manage-partners')
-            ->post('/partners', [
-                PartnerController::class,
-                'store'
-            ]);
+            ->post(
+                '/partners',
+                [PartnerController::class, 'store']
+            );
 
         Route::middleware('permission:manage-partners')
-            ->match(['put', 'patch'], '/partners/{partner}', [
-                PartnerController::class,
-                'update'
-            ]);
+            ->match(
+                ['put', 'patch'],
+                '/partners/{partner}',
+                [PartnerController::class, 'update']
+            );
 
         Route::middleware('permission:manage-partners')
-            ->delete('/partners/{partner}', [
-                PartnerController::class,
-                'destroy'
-            ]);
+            ->delete(
+                '/partners/{partner}',
+                [PartnerController::class, 'destroy']
+            );
 
 
         /*
@@ -548,22 +543,80 @@ Route::middleware('auth:sanctum')->group(function () {
         */
 
         Route::middleware('permission:manage-settings')
-            ->post('/settings', [
-                SettingController::class,
-                'store'
-            ]);
+            ->post(
+                '/settings',
+                [SettingController::class, 'store']
+            );
 
         Route::middleware('permission:manage-settings')
-            ->match(['put', 'patch'], '/settings/{setting}', [
-                SettingController::class,
-                'update'
-            ]);
+            ->match(
+                ['put', 'patch'],
+                '/settings/{setting}',
+                [SettingController::class, 'update']
+            );
 
         Route::middleware('permission:manage-settings')
-            ->delete('/settings/{setting}', [
-                SettingController::class,
-                'destroy'
-            ]);
+            ->delete(
+                '/settings/{setting}',
+                [SettingController::class, 'destroy']
+            );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | ORDERS - ADMIN
+        |--------------------------------------------------------------------------
+        */
+
+        Route::middleware('permission:view-orders')->group(function () {
+
+            /*
+            | Create / Update / Delete Orders
+            */
+
+            Route::apiResource('orders', OrderController::class)
+                ->except(['index', 'show']);
+
+
+            /*
+            | View All Orders
+            */
+
+            Route::get(
+                '/orders',
+                [OrderController::class, 'adminIndex']
+            );
+
+
+            /*
+            | View Single Order
+            */
+
+            Route::get(
+                '/orders/{order}',
+                [OrderController::class, 'adminShow']
+            );
+
+
+            /*
+            | Change Order Status
+            */
+
+            Route::patch(
+                '/orders/{order}/status',
+                [OrderController::class, 'updateStatus']
+            );
+
+
+            /*
+            | Dashboard Statistics
+            */
+
+            Route::get(
+                '/dashboard/stats',
+                [OrderController::class, 'dashboardStats']
+            );
+        });
 
     });
 
@@ -588,39 +641,37 @@ Route::middleware('auth:sanctum')->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    Route::middleware('permission:manage-cart')
-        ->get('/cart', [
-            CartController::class,
-            'index'
-        ]);
+    Route::get(
+        '/cart/count',
+        [CartController::class, 'count']
+    );
 
-    Route::middleware('permission:manage-cart')
-        ->delete('/cart/clear', [
-            CartController::class,
-            'clear'
-        ]);
+    Route::get(
+        '/cart',
+        [CartController::class, 'index']
+    );
 
-    Route::middleware('permission:manage-cart')
-        ->apiResource('cart/items', CartItemController::class)
-        ->only([
-            'store',
-            'update',
-            'destroy'
-        ]);
+    Route::delete(
+        '/cart/clear',
+        [CartController::class, 'clear']
+    );
+
+    Route::apiResource(
+        'cart/items',
+        CartItemController::class
+    )->only(['store', 'update', 'destroy']);
 
 
     /*
     |--------------------------------------------------------------------------
-    | ORDERS
+    | USER ORDERS
     |--------------------------------------------------------------------------
     */
 
-    Route::middleware('permission:manage-my-orders')
-        ->get('/my-orders', [
-            OrderController::class,
-            'index'
-        ]);
-
+    Route::apiResource(
+        'orders',
+        OrderController::class
+    )->only(['store', 'index', 'show']);
 
     Route::patch(
         '/orders/{order}/cancel',
@@ -630,16 +681,16 @@ Route::middleware('auth:sanctum')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | TEMPORARY ADMIN TEST
+    | TEST ADMIN ACCESS
     |--------------------------------------------------------------------------
     */
 
-    Route::middleware('role:admin')->get('/test-admin', function () {
+    Route::middleware('role:admin')
+        ->get('/test-admin', function () {
 
-        return response()->json([
-            'message' => 'Admin access granted.'
-        ]);
-
-    });
+            return response()->json([
+                'message' => 'Admin access granted.'
+            ]);
+        });
 
 });

@@ -4,25 +4,27 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-
 class Product extends Model
 {
-    protected $fillable = [
-        'category_id',
-        'name',
-        'slug',
-        'sku',
-        'base_price',
-        'has_discount',
-        'discount',
-        'stock',
-        'low_stock_threshold',
-        'status',
-    ];
+   protected $fillable = [
+    'category_id',
+    'name',
+    'description',
+    'sku',
+    'base_price',
+    'has_discount',
+    'discount_price',
+    'stock',
+    'low_stock_threshold',
+    'status',
+];
 
     protected $casts = [
         'name' => 'array',
         'description' => 'array',
+        'has_discount' => 'boolean',
+        'base_price' => 'decimal:2',
+        'discount_price' => 'decimal:2',
     ];
 
     public function category()
