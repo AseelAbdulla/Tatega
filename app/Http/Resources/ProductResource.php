@@ -46,6 +46,11 @@ class ProductResource extends JsonResource
                 $this->whenLoaded('images')
             ),
 
+            // وحدات المنتج المستخدمة في نموذج التعديل
+            'units' => ProductUnitResource::collection(
+                $this->whenLoaded('units')
+            ),
+
             // الصورة الرئيسية فقط للبطاقة
             'main_image' => $this->whenLoaded('images', function () {
 

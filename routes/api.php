@@ -52,43 +52,32 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::apiResource('categories', CategoryController::class)
     ->only(['index', 'show']);
 
+// Product and category testing routes (public temporarily)
+Route::apiResource('categories', CategoryController::class)
+    ->except(['index', 'show']);
 
-/*
-|--------------------------------------------------------------------------
-| PRODUCTS - PUBLIC READ
-|--------------------------------------------------------------------------
-*/
-
+// Products
 Route::apiResource('products', ProductController::class)
     ->only(['index', 'show']);
 
+Route::apiResource('products', ProductController::class)
+    ->except(['index', 'show']);
 
-/*
-|--------------------------------------------------------------------------
-| PRODUCT IMAGES - PUBLIC READ
-|--------------------------------------------------------------------------
-*/
-
+// Product Images
 Route::apiResource('product-images', ProductImageController::class)
     ->only(['index', 'show']);
 
+Route::apiResource('product-images', ProductImageController::class)
+    ->except(['index', 'show']);
 
-/*
-|--------------------------------------------------------------------------
-| PRODUCT UNITS - PUBLIC READ
-|--------------------------------------------------------------------------
-*/
-
+// Product Units
 Route::apiResource('product-units', ProductUnitController::class)
     ->only(['index', 'show']);
 
+Route::apiResource('product-units', ProductUnitController::class)
+    ->except(['index', 'show']);
 
-/*
-|--------------------------------------------------------------------------
-| BANNERS - PUBLIC READ
-|--------------------------------------------------------------------------
-*/
-
+// Banners
 Route::apiResource('banners', BannerController::class)
     ->only(['index', 'show']);
 
@@ -221,47 +210,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         /*
         |--------------------------------------------------------------------------
-        | CATEGORIES MANAGEMENT
-        |--------------------------------------------------------------------------
-        */
-
-        Route::apiResource('categories', CategoryController::class)
-            ->except(['index', 'show']);
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | PRODUCTS MANAGEMENT
-        |--------------------------------------------------------------------------
-        */
-
-        Route::apiResource('products', ProductController::class)
-            ->except(['index', 'show']);
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | PRODUCT IMAGES MANAGEMENT
-        |--------------------------------------------------------------------------
-        */
-
-        Route::apiResource('product-images', ProductImageController::class)
-            ->except(['index', 'show']);
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | PRODUCT UNITS MANAGEMENT
-        |--------------------------------------------------------------------------
-        */
-
-        Route::apiResource('product-units', ProductUnitController::class)
-            ->except(['index', 'show']);
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | BANNERS MANAGEMENT
+        | BANNERS
         |--------------------------------------------------------------------------
         */
 
