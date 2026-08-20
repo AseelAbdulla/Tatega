@@ -27,9 +27,28 @@ use App\Http\Controllers\SettingController;
 |--------------------------------------------------------------------------
 | PUBLIC ROUTES
 |--------------------------------------------------------------------------
+| المسارات التي يمكن الوصول إليها بدون تسجيل دخول
+|--------------------------------------------------------------------------
 */
 
-// Categories
+
+/*
+|--------------------------------------------------------------------------
+| AUTHENTICATION
+|--------------------------------------------------------------------------
+*/
+
+Route::post('/login', [AuthController::class, 'login']);
+
+Route::post('/register', [AuthController::class, 'register']);
+
+
+/*
+|--------------------------------------------------------------------------
+| CATEGORIES - PUBLIC READ
+|--------------------------------------------------------------------------
+*/
+
 Route::apiResource('categories', CategoryController::class)
     ->only(['index', 'show']);
 
@@ -62,32 +81,50 @@ Route::apiResource('product-units', ProductUnitController::class)
 Route::apiResource('banners', BannerController::class)
     ->only(['index', 'show']);
 
-// Features
+
+/*
+|--------------------------------------------------------------------------
+| FEATURES - PUBLIC READ
+|--------------------------------------------------------------------------
+*/
+
 Route::apiResource('features', FeatureController::class)
-    ->only(['index', 'show']);
-
-// Partners
-Route::apiResource('partners', PartnerController::class)
-    ->only(['index', 'show']);
-
-// Settings
-Route::apiResource('settings', SettingController::class)
-    ->only(['index', 'show']);
-
-// Reviews
-Route::apiResource('reviews', ReviewController::class)
     ->only(['index', 'show']);
 
 
 /*
 |--------------------------------------------------------------------------
-| AUTH ROUTES
+| PARTNERS - PUBLIC READ
 |--------------------------------------------------------------------------
 */
 
-Route::post('/login', [AuthController::class, 'login']);
+Route::apiResource('partners', PartnerController::class)
+    ->only(['index', 'show']);
 
-Route::post('/register', [AuthController::class, 'register']);
+
+/*
+|--------------------------------------------------------------------------
+| SETTINGS - PUBLIC READ
+|--------------------------------------------------------------------------
+*/
+
+Route::apiResource('settings', SettingController::class)
+    ->only(['index', 'show']);
+
+
+/*
+|--------------------------------------------------------------------------
+| REVIEWS - PUBLIC READ
+|--------------------------------------------------------------------------
+| الزوار يستطيعون مشاهدة التقييمات المقبولة من خلال Controller
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/reviews', [ReviewController::class, 'index'])
+    ->name('reviews.index');
+
+Route::get('/reviews/{review}', [ReviewController::class, 'show'])
+    ->name('reviews.show');
 
 
 /*
@@ -116,18 +153,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | USERS
+    | USERS - VIEW
     |--------------------------------------------------------------------------
-    |
-    | من يستطيع رؤية المستخدمين؟
-    |
-    | ADMIN
-    | EMPLOYEE
-    |
+    | Admin و Employee يستطيعون عرض المستخدمين
     | بشرط امتلاك permission:view-users
-    |
-    | local-client و international-client ممنوعون.
-    |
+    |--------------------------------------------------------------------------
     */
 
     Route::middleware([
@@ -135,34 +165,23 @@ Route::middleware('auth:sanctum')->group(function () {
         'permission:view-users'
     ])->group(function () {
 
-        // عرض جميع المستخدمين
         Route::get('/users', [UserController::class, 'index']);
 
-        // عرض مستخدم واحد
         Route::get('/users/{user}', [UserController::class, 'show']);
     });
 
 
     /*
     |--------------------------------------------------------------------------
-    | ADMIN ONLY - USER MANAGEMENT
+    | ADMIN ONLY
     |--------------------------------------------------------------------------
-    |
-    | الموظف يستطيع VIEW فقط.
-    |
-    | Admin يستطيع:
-    | - View
-    | - Create
-    | - Update
-    | - Delete
-    |
     */
 
     Route::middleware('role:admin')->group(function () {
 
         /*
         |--------------------------------------------------------------------------
-        | USERS - ADMIN FULL CONTROL
+        | USERS MANAGEMENT
         |--------------------------------------------------------------------------
         */
 
@@ -182,7 +201,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         /*
         |--------------------------------------------------------------------------
-        | ROLES
+        | ROLES MANAGEMENT
         |--------------------------------------------------------------------------
         */
 
@@ -195,12 +214,13 @@ Route::middleware('auth:sanctum')->group(function () {
         |--------------------------------------------------------------------------
         */
 
-        Route::apiResource('banners', BannerController::class);
+        Route::apiResource('banners', BannerController::class)
+            ->except(['index', 'show']);
 
 
         /*
         |--------------------------------------------------------------------------
-        | FEATURES
+        | FEATURES MANAGEMENT
         |--------------------------------------------------------------------------
         */
 
@@ -209,7 +229,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         /*
         |--------------------------------------------------------------------------
-        | PARTNERS
+        | PARTNERS MANAGEMENT
         |--------------------------------------------------------------------------
         */
 
@@ -219,7 +239,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         /*
         |--------------------------------------------------------------------------
-        | SETTINGS
+        | SETTINGS MANAGEMENT
         |--------------------------------------------------------------------------
         */
 
@@ -236,16 +256,38 @@ Route::middleware('auth:sanctum')->group(function () {
             'internal-notifications',
             InternalNotificationController::class
         );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | REVIEWS MANAGEMENT
+        |--------------------------------------------------------------------------
+        | Admin يستطيع الموافقة / تعديل / حذف التقييمات
+        |--------------------------------------------------------------------------
+        */
+
+        Route::put(
+            '/reviews/{review}',
+            [ReviewController::class, 'update']
+        )->name('reviews.update');
+
+        Route::patch(
+            '/reviews/{review}',
+            [ReviewController::class, 'update']
+        );
+
+        Route::delete(
+            '/reviews/{review}',
+            [ReviewController::class, 'destroy']
+        )->name('reviews.destroy');
+
     });
 
 
     /*
     |--------------------------------------------------------------------------
-    | ADMIN PREFIX - PERMISSION BASED
+    | ADMIN - PERMISSION BASED
     |--------------------------------------------------------------------------
-    |
-    | هذه المسارات تستخدم للصلاحيات التفصيلية.
-    |
     */
 
     Route::prefix('admin')->group(function () {
@@ -524,12 +566,15 @@ Route::middleware('auth:sanctum')->group(function () {
                 [OrderController::class, 'dashboardStats']
             );
         });
+
     });
 
 
     /*
     |--------------------------------------------------------------------------
-    | REVIEWS
+    | REVIEWS - CREATE
+    |--------------------------------------------------------------------------
+    | المستخدم المسجل يستطيع إضافة تقييم
     |--------------------------------------------------------------------------
     */
 
@@ -595,6 +640,6 @@ Route::middleware('auth:sanctum')->group(function () {
             return response()->json([
                 'message' => 'Admin access granted.'
             ]);
-
         });
+
 });

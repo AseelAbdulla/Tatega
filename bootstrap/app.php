@@ -16,9 +16,13 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
 
-        $middleware->api(prepend: [
-            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
-        ]);
+    $middleware->redirectGuestsTo(fn () => null);
+
+    $middleware->api(prepend: [
+        \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+    ]);
+
+
 
         // تسجيل ألقاب الـ Middlewares الخاصة بـ Spatie وبقية النظام
         $middleware->alias([
@@ -28,7 +32,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
         ]);
 
-    })
+    }) 
     ->withExceptions(function (Exceptions $exceptions): void {
 
         /*
