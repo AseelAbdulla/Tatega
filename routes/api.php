@@ -33,17 +33,30 @@ use App\Http\Controllers\SettingController;
 Route::apiResource('categories', CategoryController::class)
     ->only(['index', 'show']);
 
+// Product and category testing routes (public temporarily)
+Route::apiResource('categories', CategoryController::class)
+    ->except(['index', 'show']);
+
 // Products
 Route::apiResource('products', ProductController::class)
     ->only(['index', 'show']);
+
+Route::apiResource('products', ProductController::class)
+    ->except(['index', 'show']);
 
 // Product Images
 Route::apiResource('product-images', ProductImageController::class)
     ->only(['index', 'show']);
 
+Route::apiResource('product-images', ProductImageController::class)
+    ->except(['index', 'show']);
+
 // Product Units
 Route::apiResource('product-units', ProductUnitController::class)
     ->only(['index', 'show']);
+
+Route::apiResource('product-units', ProductUnitController::class)
+    ->except(['index', 'show']);
 
 // Banners
 Route::apiResource('banners', BannerController::class)
@@ -174,46 +187,6 @@ Route::middleware('auth:sanctum')->group(function () {
         */
 
         Route::apiResource('roles', RoleController::class);
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | CATEGORIES
-        |--------------------------------------------------------------------------
-        */
-
-        Route::apiResource('categories', CategoryController::class)
-            ->except(['index', 'show']);
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | PRODUCTS
-        |--------------------------------------------------------------------------
-        */
-
-        Route::apiResource('products', ProductController::class)
-            ->except(['index', 'show']);
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | PRODUCT IMAGES
-        |--------------------------------------------------------------------------
-        */
-
-        Route::apiResource('product-images', ProductImageController::class)
-            ->except(['index', 'show']);
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | PRODUCT UNITS
-        |--------------------------------------------------------------------------
-        */
-
-        Route::apiResource('product-units', ProductUnitController::class)
-            ->except(['index', 'show']);
 
 
         /*
