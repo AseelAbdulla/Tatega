@@ -2,19 +2,26 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreRoleRequest;
+use App\Http\Requests\UpdateRoleRequest;
+use App\Services\RoleService;
 use Illuminate\Http\Request;
-use App\Models\Role;
-use Illuminate\Support\Facades\Validator;
 
 class RoleController extends Controller
 {
+    protected RoleService $roleService;
+
+    public function __construct(RoleService $roleService)
+    {
+        $this->roleService = $roleService;
+    }
+
     /**
-     * Display a listing of roles.
+     * Get all roles
      */
     public function index()
     {
-        $roles = Role::with('users:id,name,email')->get();
+        $roles = $this->roleService->getAllRoles();
 
         return response()->json([
             'status' => true,
@@ -22,168 +29,188 @@ class RoleController extends Controller
         ]);
     }
 
-
     /**
-     * Store a newly created role.
+     * Create role
      */
-    public function store(Request $request)
+    public function store(StoreRoleRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-
-            'name' => 'required|string|max:100|unique:roles,name',
-
-            'display_name' => 'required|array'
-
-        ]);
-
-
-        if ($validator->fails()) {
-
-            return response()->json([
-                'errors' => $validator->errors()
-            ], 422);
-
-        }
-
-
-        $role = Role::create([
-
-            'name' => $request->name,
-
-            'display_name' => $request->display_name
-
-        ]);
-
+        $role = $this->roleService->createRole(
+            $request->validated()
+        );
 
         return response()->json([
-
+            'status' => true,
             'message' => 'Role created successfully',
-
             'data' => $role
-
         ], 201);
     }
 
-
-
     /**
-     * Display a specific role.
+     * Get one role
      */
     public function show(string $id)
     {
-        $role = Role::with('users:id,name,email')
-                    ->find($id);
-
+        $role = $this->roleService->getRoleById($id);
 
         if (!$role) {
-
             return response()->json([
+                'status' => false,
                 'message' => 'Role not found'
             ], 404);
-
         }
 
-
         return response()->json([
-
             'status' => true,
-
             'data' => $role
-
         ]);
     }
 
-
-
     /**
-     * Update role.
+     * Update role
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateRoleRequest $request, string $id)
     {
-
-        $role = Role::find($id);
-
+        $role = $this->roleService->updateRole(
+            $id,
+            $request->validated()
+        );
 
         if (!$role) {
-
             return response()->json([
+                'status' => false,
                 'message' => 'Role not found'
             ], 404);
-
         }
-
-
-        $validator = Validator::make($request->all(), [
-
-            'name' => 'nullable|string|max:100|unique:roles,name,' . $id,
-
-            'display_name' => 'nullable|array'
-
-        ]);
-
-
-        if ($validator->fails()) {
-
-            return response()->json([
-                'errors' => $validator->errors()
-            ], 422);
-
-        }
-
-
-
-        $role->update([
-
-            'name' => $request->name ?? $role->name,
-
-            'display_name' => $request->display_name ?? $role->display_name
-
-        ]);
-
-
 
         return response()->json([
-
+            'status' => true,
             'message' => 'Role updated successfully',
-
             'data' => $role
-
         ]);
     }
 
-
-
     /**
-     * Delete role.
+     * Delete role
      */
     public function destroy(string $id)
     {
+        $deleted = $this->roleService->deleteRole($id);
 
-        $role = Role::find($id);
-
-
-        if (!$role) {
-
+        if (!$deleted) {
             return response()->json([
+                'status' => false,
                 'message' => 'Role not found'
             ], 404);
-
         }
 
+        return response()->json([
+            'status' => true,
+            'message' => 'Role deleted successfully'
+        ]);
+    }
 
-        // حذف العلاقات من جدول role_user
-        $role->users()->detach();
-
-
-        // حذف الدور
-        $role->delete();
-
-
+    /**
+     * Get all permissions
+     */
+    public function permissions()
+    {
+        $permissions = $this->roleService->getAllPermissions();
 
         return response()->json([
-
-            'message' => 'Role deleted successfully'
-
+            'status' => true,
+            'data' => $permissions
         ]);
+    }
+
+    /**
+     * Assign permission to role
+     */
+    public function assignPermission(Request $request, string $roleId)
+    {
+        $request->validate([
+            'permission_id' => [
+                'required',
+                'integer',
+                'exists:permissions,id'
+            ]
+        ]);
+
+        $role = $this->roleService->assignPermission(
+            $roleId,
+            $request->permission_id
+        );
+
+        if (!$role) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Role or permission not found'
+            ], 404);
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Permission assigned successfully',
+            'data' => $role
+        ]);
+    }
+
+    /**
+     * Remove permission from role
+     */
+    public function removePermission(Request $request, string $roleId)
+    {
+        $request->validate([
+            'permission_id' => [
+                'required',
+                'integer',
+                'exists:permissions,id'
+            ]
+        ]);
+
+        $role = $this->roleService->removePermission(
+            $roleId,
+            $request->permission_id
+        );
+
+        if (!$role) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Role or permission not found'
+            ], 404);
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Permission removed successfully',
+            'data' => $role
+        ]);
+    }
+
+    /**
+     * Create permission
+     */
+    public function storePermission(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                'unique:permissions,name'
+            ],
+            'guard_name' => [
+                'nullable',
+                'string',
+                'max:255'
+            ]
+        ]);
+
+        $permission = $this->roleService->createPermission($validated);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Permission created successfully',
+            'data' => $permission
+        ], 201);
     }
 }

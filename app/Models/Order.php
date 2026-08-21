@@ -2,27 +2,54 @@
 
 namespace App\Models;
 
+use App\Enums\OrderStatus;
+use App\Enums\PaymentMethod;
+use App\Enums\PaymentStatus;
 use Illuminate\Database\Eloquent\Model;
-
 
 class Order extends Model
 {
-    // تم تصحيح اسماء الحقول بما يتناسب مع الجداول
     protected $fillable = [
         'user_id',
         'address_id',
+
+        'order_type',
         'status',
+
+        'customer_name',
+        'customer_phone',
+        'customer_email',
+
+        'shipping_country',
+        'shipping_city',
+        'shipping_region',
+        'shipping_street',
+        'shipping_building',
+
+        'notes',
+
         'subtotal',
         'discount',
         'tax',
         'total_price',
+        'shipping_fee',
+
+        'payment_method',
+        'payment_status',
+        'payment_receipt',
+
         'rejection_reason',
-        'order_type',
-        'updated_date',
-        'customer_name',
-        'customer_phone',
-        'customer_email',
-        'notes',
+    ];
+
+    protected $casts = [
+        'status' => OrderStatus::class,
+        'payment_method' => PaymentMethod::class,
+        'payment_status' => PaymentStatus::class,
+
+        'subtotal' => 'decimal:2',
+        'discount' => 'decimal:2',
+        'tax' => 'decimal:2',
+        'total_price' => 'decimal:2',
     ];
 
     public function user()

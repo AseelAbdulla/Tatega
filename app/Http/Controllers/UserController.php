@@ -2,239 +2,135 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\User;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
+use App\Http\Requests\StoreUserRequest;
+use App\Http\Requests\UpdateUserRequest;
+use App\Services\UserService;
 
 class UserController extends Controller
 {
+    protected UserService $userService;
+
+    public function __construct(UserService $userService)
+    {
+        $this->userService = $userService;
+    }
+
     /**
-     * Display a listing of users.
+     * =========================================================
+     * Display all users
+     * =========================================================
      */
     public function index()
     {
-        $users = User::with('roles')
-            ->select('id', 'name', 'email', 'phone', 'status')
-            ->get();
+        $users = $this->userService->getAllUsers();
 
         return response()->json([
             'status' => true,
-            'data' => $users
-        ]);
+
+            'message' => 'تم جلب المستخدمين بنجاح.',
+
+            'data' => $users,
+        ], 200);
     }
 
-
     /**
-     * Store a newly created user.
+     * =========================================================
+     * Store user
+     * =========================================================
      */
-    public function store(Request $request)
+    public function store(StoreUserRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'phone' => 'required|unique:users,phone',
-            'password' => 'required|min:8',
-            'role_id' => 'required|exists:roles,id'
-
-        ]);
-
-
-        if ($validator->fails()) {
-
-            return response()->json([
-                'errors' => $validator->errors()
-            ], 422);
-
-        }
-
-
-        $user = User::create([
-
-            'name' => $request->name,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'password' => Hash::make($request->password),
-            'status' => 'active'
-
-        ]);
-
-
-        // ربط المستخدم بالدور
-        $user->roles()->attach($request->role_id);
-
+        $user = $this->userService->createUser(
+            $request->validated()
+        );
 
         return response()->json([
+            'status' => true,
 
-            'message' => 'User created successfully',
-            'data' => $user->load('roles')
+            'message' => 'تم إنشاء المستخدم بنجاح.',
 
+            'data' => $user,
         ], 201);
     }
 
-
-
     /**
-     * Display a specific user.
+     * =========================================================
+     * Display one user
+     * =========================================================
      */
     public function show(string $id)
     {
-
-        $user = User::with('roles')
-            ->select('id', 'name', 'email', 'phone', 'status')
-            ->find($id);
-
+        $user = $this->userService->getUserById($id);
 
         if (!$user) {
-
             return response()->json([
-                'message' => 'User not found'
+                'status' => false,
+
+                'message' => 'المستخدم غير موجود.',
             ], 404);
-
         }
-
 
         return response()->json([
             'status' => true,
-            'data' => $user
-        ]);
 
+            'message' => 'تم جلب بيانات المستخدم بنجاح.',
+
+            'data' => $user,
+        ], 200);
     }
 
-
-
     /**
-     * Update user.
+     * =========================================================
+     * Update user
+     * =========================================================
      */
-    public function update(Request $request, string $id)
-    {
-
-        $user = User::find($id);
-
+    public function update(
+        UpdateUserRequest $request,
+        string $id
+    ) {
+        $user = $this->userService->updateUser(
+            $id,
+            $request->validated()
+        );
 
         if (!$user) {
-
             return response()->json([
-                'message' => 'User not found'
+                'status' => false,
+
+                'message' => 'المستخدم غير موجود.',
             ], 404);
-
         }
-
-
-
-        $validator = Validator::make($request->all(), [
-
-            'name' => 'nullable|string|max:255',
-
-            'email' => 'nullable|email|unique:users,email,' . $id,
-
-            'phone' => 'nullable|unique:users,phone,' . $id,
-
-            'password' => 'nullable|min:8',
-
-            'status' => 'nullable|string|max:50',
-
-            'role_id' => 'nullable|exists:roles,id'
-
-        ]);
-
-
-
-        if ($validator->fails()) {
-
-            return response()->json([
-                'errors' => $validator->errors()
-            ], 422);
-
-        }
-
-
-
-        $user->update([
-
-            'name' => $request->name ?? $user->name,
-
-            'email' => $request->email ?? $user->email,
-
-            'phone' => $request->phone ?? $user->phone,
-
-            'status' => $request->status ?? $user->status,
-
-        ]);
-
-
-
-        // تحديث كلمة المرور
-        if ($request->password) {
-
-            $user->password = Hash::make($request->password);
-
-            $user->save();
-
-        }
-
-
-
-        // تحديث Role
-        if ($request->role_id) {
-
-            $user->roles()->sync([
-                $request->role_id
-            ]);
-
-        }
-
-
 
         return response()->json([
+            'status' => true,
 
-            'message' => 'User updated successfully',
+            'message' => 'تم تحديث المستخدم بنجاح.',
 
-            'data' => $user->load('roles')
-
-        ]);
-
+            'data' => $user,
+        ], 200);
     }
 
-
-
-
     /**
-     * Delete user.
+     * =========================================================
+     * Delete user
+     * =========================================================
      */
     public function destroy(string $id)
     {
+        $deleted = $this->userService->deleteUser($id);
 
-        $user = User::find($id);
-
-
-        if (!$user) {
-
+        if (!$deleted) {
             return response()->json([
-                'message' => 'User not found'
-            ], 404);
+                'status' => false,
 
+                'message' => 'المستخدم غير موجود.',
+            ], 404);
         }
 
-
-
-        // حذف العلاقة من جدول role_user
-        $user->roles()->detach();
-
-
-        // حذف المستخدم
-        $user->delete();
-
-
-
         return response()->json([
+            'status' => true,
 
-            'message' => 'User deleted successfully'
-
-        ]);
-
+            'message' => 'تم حذف المستخدم بنجاح.',
+        ], 200);
     }
-
 }

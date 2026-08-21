@@ -15,9 +15,12 @@ return new class extends Migration
             $table->id();
             $table->string('name', 255);
             $table->string('email', 255)->unique();
+            $table->timestamp('email_verified_at')->nullable();
             $table->string('phone', 50)->unique();
             $table->string('password', 255);
+            $table->rememberToken();
             $table->string('status', 50)->default('active');
+            $table->string('role', 50)->default('local-client');
            $table->timestamps();
         });
     }
