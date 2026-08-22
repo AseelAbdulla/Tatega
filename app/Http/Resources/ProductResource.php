@@ -18,6 +18,11 @@ class ProductResource extends JsonResource
                 'en' => $this->name['en'] ?? null,
             ],
 
+            'description' => [
+                'ar' => $this->description['ar'] ?? '',
+                'en' => $this->description['en'] ?? '',
+            ],
+
             'slug' => $this->slug,
 
             'sku' => $this->sku,
