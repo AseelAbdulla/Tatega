@@ -37,6 +37,18 @@ class StoreProductRequest extends FormRequest
             ],
 
 
+            'description_ar' => [
+                'nullable',
+                'string'
+            ],
+
+
+            'description_en' => [
+                'nullable',
+                'string'
+            ],
+
+
             'sku' => [
                 'required',
                 'string',
