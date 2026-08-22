@@ -51,6 +51,11 @@ class ProductController extends Controller
 
             ],
 
+            'description' => [
+                'ar' => $data['description_ar'] ?? '',
+                'en' => $data['description_en'] ?? '',
+            ],
+
 
 
 
@@ -134,6 +139,11 @@ class ProductController extends Controller
 
                 'en' => $data['name_en'],
 
+            ],
+
+            'description' => [
+                'ar' => $data['description_ar'] ?? '',
+                'en' => $data['description_en'] ?? '',
             ],
 
 

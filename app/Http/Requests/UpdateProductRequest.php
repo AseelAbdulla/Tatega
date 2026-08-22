@@ -39,6 +39,18 @@ class UpdateProductRequest extends FormRequest
             ],
 
 
+            'description_ar' => [
+                'nullable',
+                'string'
+            ],
+
+
+            'description_en' => [
+                'nullable',
+                'string'
+            ],
+
+
             'sku' => [
                 'nullable',
                 Rule::unique('products','sku')
