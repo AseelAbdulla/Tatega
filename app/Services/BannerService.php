@@ -9,42 +9,26 @@ class BannerService
 {
     /**
      * عرض جميع البنرات
-     *
-     * يستخدم في لوحة تحكم الأدمن
-     * حتى تظهر البنرات النشطة وغير النشطة.
      */
-    public function index()
-    {
-        return Banner::orderBy('sort_order')->get();
-    }
-
-    /**
-     * عرض البنرات النشطة فقط
-     *
-     * يستخدم في الصفحة الرئيسية.
-     */
-    public function active()
-    {
-        return Banner::where('status', 'active')
-            ->orderBy('sort_order')
-            ->get();
-    }
-
+public function index()
+{
+    return Banner::where('status', 'active')
+        ->orderBy('sort_order')
+        ->get();
+}
     /**
      * إنشاء بنر جديد
      */
-    public function store(array $data)
-    {
-        if (isset($data['image'])) {
+   public function store(array $data)
+{
+    if (isset($data['image'])) {
+        $data['image_path'] = $data['image']->store('banners', 'public');
 
-            $data['image_path'] = $data['image']
-                ->store('banners', 'public');
-
-            unset($data['image']);
-        }
-
-        return Banner::create($data);
+        unset($data['image']);
     }
+
+    return Banner::create($data);
+}
 
     /**
      * عرض بنر واحد
@@ -57,38 +41,34 @@ class BannerService
     /**
      * تحديث بنر
      */
-    public function update(Banner $banner, array $data)
-    {
-        if (isset($data['image'])) {
+   public function update(Banner $banner, array $data)
+{
+    if (isset($data['image'])) {
 
-            if ($banner->image_path) {
-                Storage::disk('public')
-                    ->delete($banner->image_path);
-            }
-
-            $data['image_path'] = $data['image']
-                ->store('banners', 'public');
-
-            unset($data['image']);
+        if ($banner->image_path) {
+            Storage::disk('public')->delete($banner->image_path);
         }
 
-        $banner->update($data);
+        $data['image_path'] = $data['image']->store('banners', 'public');
 
-        return $banner->fresh();
+        unset($data['image']);
     }
 
+    $banner->update($data);
+
+    return $banner->fresh();
+}
     /**
      * حذف بنر
      */
-    public function destroy(Banner $banner)
-    {
-        if ($banner->image_path) {
-            Storage::disk('public')
-                ->delete($banner->image_path);
-        }
-
-        $banner->delete();
-
-        return true;
+  public function destroy(Banner $banner)
+{
+    if ($banner->image_path) {
+        Storage::disk('public')->delete($banner->image_path);
     }
+
+    $banner->delete();
+
+    return true;
+}
 }
