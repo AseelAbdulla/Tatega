@@ -7,26 +7,54 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class ReviewResource extends JsonResource
 {
-    public function toArray(Request $request): array
-    {
+    public function toArray(
+        Request $request
+    ): array {
+
         return [
-            'id' => $this->id,
 
-            'product' => $this->product,
+            'id' =>
+                $this->id,
 
-            'user' => $this->user,
+            'user_id' =>
+                $this->user_id,
 
-            'visitor_name' => $this->visitor_name,
+            'visitor_name' =>
+                $this->visitor_name,
 
-            'rating' => $this->rating,
+            'visitor_email' =>
+                $this->visitor_email,
 
-            'comment' => $this->comment,
+            'rating' =>
+                $this->rating,
 
-            'status' => $this->status,
+            'comment' =>
+                $this->comment,
 
-            'created_at' => $this->created_at,
+            'status' =>
+                $this->status,
 
-            'updated_at' => $this->updated_at,
+            'admin_note' =>
+                $this->admin_note,
+
+            'product_id' =>
+                $this->product_id,
+
+            'created_at' =>
+                $this->created_at,
+
+            'updated_at' =>
+                $this->updated_at,
+
+            'user' =>
+                $this->whenLoaded(
+                    'user'
+                ),
+
+            'product' =>
+                $this->whenLoaded(
+                    'product'
+                ),
         ];
     }
 }
