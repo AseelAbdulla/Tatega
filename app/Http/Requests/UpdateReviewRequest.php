@@ -11,48 +11,16 @@ class UpdateReviewRequest extends FormRequest
         return true;
     }
 
+
     public function rules(): array
     {
         return [
-
-            'status' => [
-                'sometimes',
-                'required',
-                'in:pending,approved,rejected',
-            ],
-
-            'admin_note' => [
-                'sometimes',
-                'nullable',
-                'string',
-                'max:2000',
-            ],
-
-            'visitor_name' => [
-                'sometimes',
-                'string',
-                'max:255',
-            ],
-
-            'visitor_email' => [
-                'sometimes',
-                'email',
-                'max:255',
-            ],
-
-            'rating' => [
-                'sometimes',
-                'integer',
-                'min:1',
-                'max:5',
-            ],
-
-            'comment' => [
-                'sometimes',
-                'string',
-                'min:3',
-                'max:2000',
-            ],
+            'product_id' => 'sometimes|exists:products,id',
+            'user_id' => 'nullable|exists:users,id',
+            'visitor_name' => 'nullable|string|max:255',
+            'rating' => 'sometimes|integer|min:1|max:5',
+            'comment' => 'nullable|string',
+            'status' => 'nullable|string|max:50',
         ];
     }
 }

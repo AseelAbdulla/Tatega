@@ -25,16 +25,6 @@ class BannerController extends Controller
     }
 
     /**
-     * Display only active banners.
-     */
-    public function active()
-    {
-        $banners = $this->bannerService->active();
-
-        return BannerResource::collection($banners);
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
     public function store(StoreBannerRequest $request)
@@ -59,10 +49,8 @@ class BannerController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(
-        UpdateBannerRequest $request,
-        Banner $banner
-    ) {
+    public function update(UpdateBannerRequest $request, Banner $banner)
+    {
         $banner = $this->bannerService->update(
             $banner,
             $request->validated()

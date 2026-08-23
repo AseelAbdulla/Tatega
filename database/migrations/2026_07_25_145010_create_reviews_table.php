@@ -13,28 +13,21 @@ return new class extends Migration
             $table->id();
 
             $table->foreignId('product_id')
-                ->nullable()
-                ->constrained('products')
-                ->nullOnDelete();
+                  ->constrained('products')
+                  ->cascadeOnDelete();
 
             $table->foreignId('user_id')
-                ->nullable()
-                ->constrained('users')
-                ->nullOnDelete();
+                  ->nullable()
+                  ->constrained('users')
+                  ->nullOnDelete();
 
-            $table->string('visitor_name', 255);
+            $table->string('visitor_name', 255)->nullable();
 
-            $table->string('visitor_email', 255);
+            $table->integer('rating');
 
-            $table->unsignedTinyInteger('rating');
+            $table->text('comment')->nullable();
 
-            $table->text('comment');
-
-            $table->string('status', 50)
-                ->default('pending');
-
-            $table->text('admin_note')
-                ->nullable();
+            $table->string('status', 50)->default('approved');
 
             $table->timestamps();
         });
