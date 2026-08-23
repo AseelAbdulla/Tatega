@@ -23,7 +23,8 @@ class RolesAndPermissionsSeeder extends Seeder
             // إدارة الأصناف والمنتجات والواجهات (المدير + الموظف)
             'view-products', 'create-products', 'edit-products', 'delete-products',
             'view-categories', 'create-categories', 'edit-categories', 'delete-categories',
-            'manage-banners', 'manage-settings', 'manage-features', 'manage-partners',
+            'manage-banners', 'manage-settings', 'manage-features', 'manage-partners','manage-wallets',
+            'permission:manage-wallets'<
 
             // إدارة جميع الطلبات (المدير + الموظف)
             'view-all-orders', 'edit-all-orders', 'delete-all-orders',

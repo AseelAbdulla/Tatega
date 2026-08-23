@@ -7,6 +7,7 @@ use App\Services\ReviewService;
 use App\Http\Resources\ReviewResource;
 use App\Http\Requests\StoreReviewRequest;
 use App\Http\Requests\UpdateReviewRequest;
+use Illuminate\Http\Request;
 
 class ReviewController extends Controller
 {
@@ -14,48 +15,156 @@ class ReviewController extends Controller
         protected ReviewService $reviewService
     ) {}
 
-    public function index()
-    {
+
+    /*
+    |--------------------------------------------------------------------------
+    | PUBLIC - APPROVED REVIEWS
+    |--------------------------------------------------------------------------
+    */
+
+    public function approved(
+        Request $request
+    ) {
+
+        $page = (int) $request->get(
+            'page',
+            1
+        );
+
+        $sort = $request->get(
+            'sort',
+            'latest'
+        );
+
         return ReviewResource::collection(
-            $this->reviewService->index()
+
+            $this->reviewService->approved(
+                $page,
+                $sort
+            )
+
         );
     }
 
-    public function store(StoreReviewRequest $request)
-    {
-        $review = $this->reviewService->store(
-            $request->validated()
-        );
 
-        return new ReviewResource($review);
+    /*
+    |--------------------------------------------------------------------------
+    | PUBLIC - STORE
+    |--------------------------------------------------------------------------
+    */
+
+    public function store(
+        StoreReviewRequest $request
+    ) {
+
+        $review =
+            $this->reviewService->store(
+                $request->validated()
+            );
+
+        return response()->json([
+            'status' => 'success',
+
+            'message' =>
+                'تم إرسال تقييمك بنجاح، وسيظهر بعد مراجعته واعتماده.',
+
+            'data' =>
+                new ReviewResource($review),
+        ], 201);
     }
 
-    public function show(Review $review)
-    {
+
+    /*
+    |--------------------------------------------------------------------------
+    | ADMIN - INDEX
+    |--------------------------------------------------------------------------
+    */
+
+    public function index(
+        Request $request
+    ) {
+
+        $page = (int) $request->get(
+            'page',
+            1
+        );
+
+        $status = $request->get(
+            'status',
+            'all'
+        );
+
+        return ReviewResource::collection(
+
+            $this->reviewService->index(
+                $page,
+                $status
+            )
+
+        );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | ADMIN - SHOW
+    |--------------------------------------------------------------------------
+    */
+
+    public function show(
+        Review $review
+    ) {
+
         return new ReviewResource(
-            $this->reviewService->show($review)
+            $this->reviewService->show(
+                $review
+            )
         );
     }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | ADMIN - UPDATE
+    |--------------------------------------------------------------------------
+    */
 
     public function update(
         UpdateReviewRequest $request,
         Review $review
     ) {
-        $review = $this->reviewService->update(
-            $review,
-            $request->validated()
-        );
 
-        return new ReviewResource($review);
+        $review =
+            $this->reviewService->update(
+                $review,
+                $request->validated()
+            );
+
+        return new ReviewResource(
+            $review
+        );
     }
 
-    public function destroy(Review $review)
-    {
-        $this->reviewService->destroy($review);
+
+    /*
+    |--------------------------------------------------------------------------
+    | ADMIN - DELETE
+    |--------------------------------------------------------------------------
+    */
+
+    public function destroy(
+        Review $review
+    ) {
+
+        $this->reviewService->destroy(
+            $review
+        );
 
         return response()->json([
             'status' => 'success',
-            'message' => 'تم حذف المراجعة بنجاح'
+
+            'message' =>
+                'تم حذف التقييم بنجاح.',
         ]);
     }
 }
