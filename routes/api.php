@@ -64,13 +64,39 @@ Route::post('/register', [
 |--------------------------------------------------------------------------
 */
 
-Route::apiResource(
-    'categories',
-    CategoryController::class
-)->only([
-    'index',
-    'show'
-]);
+Route::apiResource('categories', CategoryController::class)
+    ->only(['index', 'show']);
+
+// Products
+Route::apiResource('products', ProductController::class)
+    ->only(['index', 'show']);
+
+// Product Images
+Route::apiResource('product-images', ProductImageController::class)
+    ->only(['index', 'show']);
+
+// Product Units
+Route::apiResource('product-units', ProductUnitController::class)
+    ->only(['index', 'show']);
+
+// إدارة المنتجات والصور والوحدات للمدير فقط
+Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
+    Route::apiResource('categories', CategoryController::class)
+        ->except(['index', 'show']);
+
+    Route::apiResource('products', ProductController::class)
+        ->except(['index', 'show']);
+
+    Route::apiResource('product-images', ProductImageController::class)
+        ->except(['index', 'show']);
+
+    Route::apiResource('product-units', ProductUnitController::class)
+        ->except(['index', 'show']);
+});
+
+// Banners
+Route::apiResource('banners', BannerController::class)
+    ->only(['index', 'show']);
 
 
 /*

@@ -740,6 +740,34 @@ php artisan test
 
 «⚠️ ملاحظة: يجب التأكد من أن هذه البيانات موجودة في Seeder المستخدمين في النسخة المعتمدة من المشروع. إذا لم يكن الحساب موجودًا، يمكن إنشاء حساب المسؤول من خلال Seeder مخصص قبل استخدامه للاختبار.»
 
+او يمكنك اتباع هذه الخطوات لادخال مستخدم بهذه الصلاحيه
+ادخل الامر في التيرمنال
+php artisan tinker
+تم الصق هذا الكود 
+use App\Models\User;
+use Spatie\Permission\Models\Role;
+
+// 1. التأكد من وجود دور الأدمن أو إنشائه
+$adminRole = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
+
+// 2. إنشاء المستخدم أو جلب حسابه إذا كان إيميله موجوداً مسبقاً
+$user = User::firstOrCreate(
+    ['email' => 'admin@example.com'],
+    [
+        'name' => 'مدير النظام',
+        'password' => bcrypt('password123'), // كلمة المرور
+        'email_verified_at' => now(),
+    ]
+);
+
+// 3. إسناد دور الأدمن للمستخدم
+$user->assignRole($adminRole);
+
+// طباعة النتيجة للتأكد
+"تم إنشاء المدير بنجاح: Email: {$user->email} | Password: password123";
+
+
+
 ---
 
 🔄 دورة الطلب
