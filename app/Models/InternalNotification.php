@@ -1,9 +1,7 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
 
 class InternalNotification extends Model
 {
@@ -16,13 +14,15 @@ class InternalNotification extends Model
         'sent_at',
     ];
 
-      protected $casts = [
+    protected $casts = [
         'title' => 'array',
         'message' => 'array',
+        'is_read' => 'boolean',
+        'sent_at' => 'datetime',
     ];
+
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 }
-
