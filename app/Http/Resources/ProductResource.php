@@ -18,6 +18,11 @@ class ProductResource extends JsonResource
                 'en' => $this->name['en'] ?? null,
             ],
 
+            'description' => [
+                'ar' => $this->description['ar'] ?? '',
+                'en' => $this->description['en'] ?? '',
+            ],
+
             'slug' => $this->slug,
 
             'sku' => $this->sku,
@@ -44,6 +49,11 @@ class ProductResource extends JsonResource
             // الصور
             'images' => ProductImageResource::collection(
                 $this->whenLoaded('images')
+            ),
+
+            // وحدات المنتج المستخدمة في نموذج التعديل
+            'units' => ProductUnitResource::collection(
+                $this->whenLoaded('units')
             ),
 
             // الصورة الرئيسية فقط للبطاقة

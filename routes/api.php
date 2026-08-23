@@ -1,4 +1,3 @@
-
 <?php
 
 use Illuminate\Support\Facades\Route;
@@ -28,16 +27,17 @@ use App\Http\Controllers\ProductImageController;
 use App\Http\Controllers\ProductUnitController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\WalletController;
 
 use App\Http\Controllers\Api\Customer\InternationalImportRequestController;
 use App\Http\Controllers\Api\Admin\InternationalImportRequestController
     as AdminInternationalImportRequestController;
+use App\Http\Controllers\Api\Admin\CustomerController;
 
 use App\Http\Controllers\CustomerOrderController;
 use App\Http\Controllers\CustomerPasswordController;
+use App\Http\Controllers\CustomerPaymentMethodController;
 use App\Http\Controllers\CustomerProfileController;
-use App\Http\Controllers\PaymentMethodController;
-use App\Http\Controllers\Api\Admin\CustomerController;
 
 
 /*
@@ -161,16 +161,20 @@ Route::apiResource('partners', PartnerController::class)
 |--------------------------------------------------------------------------
 */
 
-Route::apiResource('settings', SettingController::class)
-    ->only([
-        'index',
-        'show'
-    ]);
+Route::get('/settings', [
+    SettingController::class,
+    'index'
+]);
+
+Route::get('/settings/{setting}', [
+    SettingController::class,
+    'show'
+]);
 
 
 /*
 |--------------------------------------------------------------------------
-| REVIEWS - PUBLIC READ
+| REVIEWS - PUBLIC
 |--------------------------------------------------------------------------
 */
 
@@ -184,13 +188,16 @@ Route::get('/reviews/{review}', [
     'show'
 ])->name('reviews.show');
 
+Route::get('/reviews/approved', [
+    ReviewController::class,
+    'approved'
+]);
+
 
 /*
 |--------------------------------------------------------------------------
 | AUTHENTICATED ROUTES
 |--------------------------------------------------------------------------
-|
-| كل ما بداخل هذه المجموعة يحتاج:
 |
 | Authorization: Bearer TOKEN
 |
@@ -218,6 +225,18 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/email/verification-notification', [
         EmailVerificationNotificationController::class,
         'store'
+    ]);
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | ACTIVE BANNERS
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/banners/active', [
+        BannerController::class,
+        'active'
     ]);
 
 
@@ -252,48 +271,48 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | CUSTOMER ROUTES
+    | CUSTOMER PAYMENT METHODS
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/customer/payment-methods', [
+        CustomerPaymentMethodController::class,
+        'index'
+    ]);
+
+    Route::post('/customer/payment-methods', [
+        CustomerPaymentMethodController::class,
+        'store'
+    ]);
+
+    Route::get('/customer/payment-methods/{paymentMethod}', [
+        CustomerPaymentMethodController::class,
+        'show'
+    ]);
+
+    Route::put('/customer/payment-methods/{paymentMethod}', [
+        CustomerPaymentMethodController::class,
+        'update'
+    ]);
+
+    Route::delete('/customer/payment-methods/{paymentMethod}', [
+        CustomerPaymentMethodController::class,
+        'destroy'
+    ]);
+
+    Route::patch('/customer/payment-methods/{paymentMethod}/default', [
+        CustomerPaymentMethodController::class,
+        'setDefault'
+    ]);
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | CUSTOMER
     |--------------------------------------------------------------------------
     */
 
     Route::prefix('customer')->group(function () {
-
-        /*
-        |--------------------------------------------------------------------------
-        | PAYMENT METHODS
-        |--------------------------------------------------------------------------
-        */
-
-        Route::get('/payment-methods', [
-            PaymentMethodController::class,
-            'index'
-        ]);
-
-        Route::post('/payment-methods', [
-            PaymentMethodController::class,
-            'store'
-        ]);
-
-        Route::get('/payment-methods/{paymentMethod}', [
-            PaymentMethodController::class,
-            'show'
-        ]);
-
-        Route::put('/payment-methods/{paymentMethod}', [
-            PaymentMethodController::class,
-            'update'
-        ]);
-
-        Route::patch('/payment-methods/{paymentMethod}/default', [
-            PaymentMethodController::class,
-            'setDefault'
-        ]);
-
-        Route::delete('/payment-methods/{paymentMethod}', [
-            PaymentMethodController::class,
-            'destroy'
-        ]);
-
 
         /*
         |--------------------------------------------------------------------------
@@ -375,7 +394,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | CUSTOMER - CART
+    | CART
     |--------------------------------------------------------------------------
     */
 
@@ -404,7 +423,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | CUSTOMER - ORDERS
+    | CUSTOMER ORDERS
     |--------------------------------------------------------------------------
     */
 
@@ -431,7 +450,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | CUSTOMER - REVIEWS
+    | CUSTOMER REVIEWS
     |--------------------------------------------------------------------------
     */
 
@@ -489,9 +508,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
         |--------------------------------------------------------------------------
         | CUSTOMERS
         |--------------------------------------------------------------------------
-        |
-        | المدير والموظف يستطيعان مشاهدة العملاء.
-        |
         */
 
         Route::middleware([
@@ -519,175 +535,48 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
         /*
         |--------------------------------------------------------------------------
-        | USERS - CREATE / UPDATE / DELETE
+        | USERS
         |--------------------------------------------------------------------------
-        |
-        | المدير فقط.
-        |
         */
 
-        Route::middleware('role:admin')->group(function () {
+        Route::middleware('permission:view-users')
+            ->get('/users', [
+                UserController::class,
+                'index'
+            ]);
 
-            Route::post('/users', [
+        Route::middleware('permission:view-users')
+            ->get('/users/{user}', [
+                UserController::class,
+                'show'
+            ]);
+
+        Route::middleware('permission:create-users')
+            ->post('/users', [
                 UserController::class,
                 'store'
             ]);
 
-            Route::match(['put', 'patch'], '/users/{user}', [
-                UserController::class,
-                'update'
-            ]);
-
-            Route::delete('/users/{user}', [
-                UserController::class,
-                'destroy'
-            ]);
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | ROLES
-            |--------------------------------------------------------------------------
-            */
-
-            Route::apiResource('roles', RoleController::class);
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | CATEGORIES MANAGEMENT
-            |--------------------------------------------------------------------------
-            */
-
-            Route::apiResource('categories', CategoryController::class)
-                ->except([
-                    'index',
-                    'show'
-                ]);
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | PRODUCTS MANAGEMENT
-            |--------------------------------------------------------------------------
-            */
-
-            Route::apiResource('products', ProductController::class)
-                ->except([
-                    'index',
-                    'show'
-                ]);
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | PRODUCT IMAGES MANAGEMENT
-            |--------------------------------------------------------------------------
-            */
-
-            Route::apiResource('product-images', ProductImageController::class)
-                ->except([
-                    'index',
-                    'show'
-                ]);
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | PRODUCT UNITS MANAGEMENT
-            |--------------------------------------------------------------------------
-            */
-
-            Route::apiResource('product-units', ProductUnitController::class)
-                ->except([
-                    'index',
-                    'show'
-                ]);
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | BANNERS MANAGEMENT
-            |--------------------------------------------------------------------------
-            */
-
-            Route::apiResource('banners', BannerController::class)
-                ->except([
-                    'index',
-                    'show'
-                ]);
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | FEATURES MANAGEMENT
-            |--------------------------------------------------------------------------
-            */
-
-            Route::apiResource('features', FeatureController::class);
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | PARTNERS MANAGEMENT
-            |--------------------------------------------------------------------------
-            */
-
-            Route::apiResource('partners', PartnerController::class)
-                ->except([
-                    'index',
-                    'show'
-                ]);
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | SETTINGS MANAGEMENT
-            |--------------------------------------------------------------------------
-            */
-
-            Route::apiResource('settings', SettingController::class);
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | INTERNAL NOTIFICATIONS - ADMIN
-            |--------------------------------------------------------------------------
-            */
-
-            Route::apiResource(
-                'internal-notifications',
-                InternalNotificationController::class
+        Route::middleware('permission:update-users')
+            ->match(
+                ['put', 'patch'],
+                '/users/{user}',
+                [
+                    UserController::class,
+                    'update'
+                ]
             );
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | REVIEWS MANAGEMENT
-            |--------------------------------------------------------------------------
-            */
-
-            Route::put('/reviews/{review}', [
-                ReviewController::class,
-                'update'
-            ])->name('reviews.update');
-
-            Route::patch('/reviews/{review}', [
-                ReviewController::class,
-                'update'
-            ]);
-
-            Route::delete('/reviews/{review}', [
-                ReviewController::class,
+        Route::middleware('permission:delete-users')
+            ->delete('/users/{user}', [
+                UserController::class,
                 'destroy'
-            ])->name('reviews.destroy');
-
-        });
+            ]);
 
 
         /*
         |--------------------------------------------------------------------------
-        | ROLES & PERMISSIONS
+        | ROLES
         |--------------------------------------------------------------------------
         */
 
@@ -710,10 +599,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
             ]);
 
         Route::middleware('permission:update-roles')
-            ->match(['put', 'patch'], '/roles/{role}', [
-                RoleController::class,
-                'update'
-            ]);
+            ->match(
+                ['put', 'patch'],
+                '/roles/{role}',
+                [
+                    RoleController::class,
+                    'update'
+                ]
+            );
 
         Route::middleware('permission:delete-roles')
             ->delete('/roles/{role}', [
@@ -747,10 +640,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
             ]);
 
         Route::middleware('permission:update-roles')
-            ->match(['put', 'patch'], '/permissions/{id}', [
-                RoleController::class,
-                'updatePermission'
-            ]);
+            ->match(
+                ['put', 'patch'],
+                '/permissions/{id}',
+                [
+                    RoleController::class,
+                    'updatePermission'
+                ]
+            );
 
         Route::middleware('permission:delete-roles')
             ->delete('/permissions/{id}', [
@@ -780,9 +677,71 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
         /*
         |--------------------------------------------------------------------------
-        | BANNERS
+        | CATEGORIES MANAGEMENT
         |--------------------------------------------------------------------------
         */
+
+        Route::middleware('permission:manage-categories')
+            ->apiResource('categories', CategoryController::class)
+            ->except([
+                'index',
+                'show'
+            ]);
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | PRODUCTS MANAGEMENT
+        |--------------------------------------------------------------------------
+        */
+
+        Route::middleware('permission:manage-products')
+            ->apiResource('products', ProductController::class)
+            ->except([
+                'index',
+                'show'
+            ]);
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | PRODUCT IMAGES MANAGEMENT
+        |--------------------------------------------------------------------------
+        */
+
+        Route::middleware('permission:manage-products')
+            ->apiResource('product-images', ProductImageController::class)
+            ->except([
+                'index',
+                'show'
+            ]);
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | PRODUCT UNITS MANAGEMENT
+        |--------------------------------------------------------------------------
+        */
+
+        Route::middleware('permission:manage-products')
+            ->apiResource('product-units', ProductUnitController::class)
+            ->except([
+                'index',
+                'show'
+            ]);
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | BANNERS MANAGEMENT
+        |--------------------------------------------------------------------------
+        */
+
+        Route::middleware('permission:manage-banners')
+            ->get('/banners', [
+                BannerController::class,
+                'index'
+            ]);
 
         Route::middleware('permission:manage-banners')
             ->post('/banners', [
@@ -791,10 +750,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
             ]);
 
         Route::middleware('permission:manage-banners')
-            ->match(['put', 'patch'], '/banners/{banner}', [
-                BannerController::class,
-                'update'
-            ]);
+            ->match(
+                ['put', 'patch'],
+                '/banners/{banner}',
+                [
+                    BannerController::class,
+                    'update'
+                ]
+            );
 
         Route::middleware('permission:manage-banners')
             ->delete('/banners/{banner}', [
@@ -805,7 +768,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
         /*
         |--------------------------------------------------------------------------
-        | FEATURES
+        | FEATURES MANAGEMENT
         |--------------------------------------------------------------------------
         */
 
@@ -816,10 +779,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
             ]);
 
         Route::middleware('permission:manage-features')
-            ->match(['put', 'patch'], '/features/{feature}', [
-                FeatureController::class,
-                'update'
-            ]);
+            ->match(
+                ['put', 'patch'],
+                '/features/{feature}',
+                [
+                    FeatureController::class,
+                    'update'
+                ]
+            );
 
         Route::middleware('permission:manage-features')
             ->delete('/features/{feature}', [
@@ -830,7 +797,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
         /*
         |--------------------------------------------------------------------------
-        | PARTNERS
+        | PARTNERS MANAGEMENT
         |--------------------------------------------------------------------------
         */
 
@@ -841,10 +808,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
             ]);
 
         Route::middleware('permission:manage-partners')
-            ->match(['put', 'patch'], '/partners/{partner}', [
-                PartnerController::class,
-                'update'
-            ]);
+            ->match(
+                ['put', 'patch'],
+                '/partners/{partner}',
+                [
+                    PartnerController::class,
+                    'update'
+                ]
+            );
 
         Route::middleware('permission:manage-partners')
             ->delete('/partners/{partner}', [
@@ -855,7 +826,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
         /*
         |--------------------------------------------------------------------------
-        | SETTINGS
+        | SETTINGS MANAGEMENT
         |--------------------------------------------------------------------------
         */
 
@@ -866,10 +837,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
             ]);
 
         Route::middleware('permission:manage-settings')
-            ->match(['put', 'patch'], '/settings/{setting}', [
-                SettingController::class,
-                'update'
-            ]);
+            ->match(
+                ['put', 'patch'],
+                '/settings/{setting}',
+                [
+                    SettingController::class,
+                    'update'
+                ]
+            );
 
         Route::middleware('permission:manage-settings')
             ->delete('/settings/{setting}', [
@@ -880,15 +855,52 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
         /*
         |--------------------------------------------------------------------------
+        | INTERNAL NOTIFICATIONS - ADMIN
+        |--------------------------------------------------------------------------
+        */
+
+        Route::apiResource(
+            'internal-notifications',
+            InternalNotificationController::class
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | REVIEWS MANAGEMENT
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get('/reviews', [
+            ReviewController::class,
+            'index'
+        ]);
+
+        Route::get('/reviews/{review}', [
+            ReviewController::class,
+            'show'
+        ]);
+
+        Route::put('/reviews/{review}', [
+            ReviewController::class,
+            'update'
+        ])->name('reviews.update');
+
+        Route::patch('/reviews/{review}', [
+            ReviewController::class,
+            'update'
+        ]);
+
+        Route::delete('/reviews/{review}', [
+            ReviewController::class,
+            'destroy'
+        ])->name('reviews.destroy');
+
+
+        /*
+        |--------------------------------------------------------------------------
         | ORDERS - ADMIN
         |--------------------------------------------------------------------------
-        |
-        | ملاحظة:
-        | الأدمن لديه:
-        | view-all-orders
-        | edit-all-orders
-        | delete-all-orders
-        |
         */
 
         Route::middleware('permission:view-all-orders')
@@ -903,38 +915,21 @@ Route::middleware(['auth:sanctum'])->group(function () {
                 'adminShow'
             ]);
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | ORDER STATUS
-        |--------------------------------------------------------------------------
-        */
-
         Route::middleware('permission:edit-all-orders')
             ->patch('/orders/{order}/status', [
                 OrderController::class,
                 'updateStatus'
             ]);
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | UPDATE ORDER
-        |--------------------------------------------------------------------------
-        */
-
         Route::middleware('permission:edit-all-orders')
-            ->match(['put', 'patch'], '/orders/{order}', [
-                OrderController::class,
-                'update'
-            ]);
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | DELETE ORDER
-        |--------------------------------------------------------------------------
-        */
+            ->match(
+                ['put', 'patch'],
+                '/orders/{order}',
+                [
+                    OrderController::class,
+                    'update'
+                ]
+            );
 
         Route::middleware('permission:delete-all-orders')
             ->delete('/orders/{order}', [
@@ -942,21 +937,47 @@ Route::middleware(['auth:sanctum'])->group(function () {
                 'destroy'
             ]);
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | DASHBOARD STATISTICS
-        |--------------------------------------------------------------------------
-        |
-        | الأدمن يستطيع مشاهدة إحصائيات جميع الطلبات.
-        |
-        */
-
         Route::middleware('permission:view-all-orders')
             ->get('/dashboard/stats', [
                 OrderController::class,
                 'dashboardStats'
             ]);
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | WALLETS - ADMIN
+        |--------------------------------------------------------------------------
+        */
+
+        Route::middleware('permission:manage-wallets')->group(function () {
+
+            Route::get('/wallets', [
+                WalletController::class,
+                'index'
+            ]);
+
+            Route::post('/wallets', [
+                WalletController::class,
+                'store'
+            ]);
+
+            Route::get('/wallets/{wallet}', [
+                WalletController::class,
+                'show'
+            ]);
+
+            Route::put('/wallets/{wallet}', [
+                WalletController::class,
+                'update'
+            ]);
+
+            Route::delete('/wallets/{wallet}', [
+                WalletController::class,
+                'destroy'
+            ]);
+
+        });
 
     });
 
@@ -978,4 +999,3 @@ Route::middleware(['auth:sanctum'])->group(function () {
         });
 
 });
-

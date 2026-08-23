@@ -16,19 +16,19 @@ class UpdateBannerRequest extends FormRequest
         return [
             'image' => 'sometimes|nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
 
-            'slogan' => 'nullable|array',
-            'slogan.ar' => 'nullable|string',
-            'slogan.en' => 'nullable|string',
+            'slogan' => 'sometimes|nullable|array',
+            'slogan.ar' => 'sometimes|nullable|string',
+            'slogan.en' => 'sometimes|nullable|string',
 
-            'sort_order' => 'nullable|integer',
-            'status' => 'nullable|in:active,inactive',
+            'sort_order' => 'sometimes|nullable|integer',
+
+            'status' => 'sometimes|in:active,inactive',
         ];
     }
 
     public function messages(): array
     {
         return [
-            'image.required' => 'صورة البنر مطلوبة.',
             'image.image' => 'الملف يجب أن يكون صورة.',
             'image.mimes' => 'صيغة الصورة يجب أن تكون jpg أو jpeg أو png أو webp.',
             'image.max' => 'حجم الصورة يجب ألا يتجاوز 5 ميجابايت.',
