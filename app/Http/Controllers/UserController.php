@@ -34,22 +34,6 @@ class UserController extends Controller
     }
 
     /**
- * =========================================================
- * Display local customers
- * =========================================================
- */
-public function localCustomers()
-{
-    $customers = $this->userService->getLocalCustomers();
-
-    return response()->json([
-        'status' => true,
-        'message' => 'تم جلب العملاء المحليين بنجاح.',
-        'data' => $customers,
-    ], 200);
-}
-
-    /**
      * =========================================================
      * Store user
      * =========================================================

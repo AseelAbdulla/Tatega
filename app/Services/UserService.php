@@ -28,34 +28,6 @@ class UserService
     }
 
     /**
- * Get all local customers
- */
-public function getLocalCustomers()
-{
-    return User::with([
-        'roles',
-        'addresses',
-        'orders',
-    ])
-        ->whereHas('roles', function ($query) {
-            $query->where('name', 'local-client')
-                  ->where('guard_name', 'sanctum');
-        })
-        ->select(
-            'id',
-            'name',
-            'email',
-            'phone',
-            'status',
-            'customer_type',
-            'created_at',
-            'updated_at'
-        )
-        ->latest()
-        ->get();
-}
-
-    /**
      * Create new user
      */
     public function createUser(array $data)
