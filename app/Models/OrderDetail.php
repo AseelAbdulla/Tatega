@@ -3,13 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class OrderDetail extends Model
 {
-    /**
-     * الحقول القابلة للتعبئة
-     */
     protected $fillable = [
         'order_id',
         'product_id',
@@ -23,49 +19,26 @@ class OrderDetail extends Model
         'total_price',
     ];
 
-    /**
-     * تحويل أنواع البيانات
-     */
     protected $casts = [
         'product_name_snapshot' => 'array',
         'unit_name_snapshot' => 'array',
-
-        'quantity' => 'integer',
 
         'unit_price' => 'decimal:2',
         'total_price' => 'decimal:2',
     ];
 
-    /**
-     * =========================================================
-     * ORDER
-     * =========================================================
-     */
-    public function order(): BelongsTo
+    public function order()
     {
         return $this->belongsTo(Order::class);
     }
 
-    /**
-     * =========================================================
-     * PRODUCT
-     * =========================================================
-     */
-    public function product(): BelongsTo
+    public function product()
     {
         return $this->belongsTo(Product::class);
     }
 
-    /**
-     * =========================================================
-     * PRODUCT UNIT
-     * =========================================================
-     */
-    public function unit(): BelongsTo
+    public function unit()
     {
-        return $this->belongsTo(
-            ProductUnit::class,
-            'unit_id'
-        );
+        return $this->belongsTo(ProductUnit::class, 'unit_id');
     }
 }

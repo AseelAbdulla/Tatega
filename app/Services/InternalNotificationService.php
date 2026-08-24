@@ -7,19 +7,12 @@ use App\Models\InternalNotification;
 class InternalNotificationService
 {
     /**
-     * =========================================================
-     * ADMIN
-     * =========================================================
-     */
-
-    /**
      * Get notifications for current user
      */
     public function getAllNotifications()
     {
         return InternalNotification::with('user:id,name')
             ->where('user_id', auth()->id())
-            ->latest()
             ->get();
     }
 
@@ -87,89 +80,5 @@ class InternalNotificationService
         $notification->delete();
 
         return true;
-    }
-
-
-    /**
-     * =========================================================
-     * CUSTOMER
-     * =========================================================
-     */
-
-    /**
-     * Get notifications for authenticated customer
-     *
-     * العميل يرى إشعاراته فقط
-     */
-    public function getCustomerNotifications()
-    {
-        return InternalNotification::query()
-            ->where('user_id', auth()->id())
-            ->latest()
-            ->get();
-    }
-
-
-    /**
-     * Get one notification for authenticated customer
-     *
-     * يمنع العميل من مشاهدة إشعار مستخدم آخر
-     */
-    public function getCustomerNotificationById($id)
-    {
-        return InternalNotification::query()
-            ->where('user_id', auth()->id())
-            ->find($id);
-    }
-
-
-    /**
-     * Mark one customer notification as read
-     *
-     * العميل يستطيع تحديث إشعاره هو فقط
-     */
-    public function markCustomerNotificationAsRead($id)
-    {
-        $notification = InternalNotification::query()
-            ->where('user_id', auth()->id())
-            ->find($id);
-
-        if (!$notification) {
-            return null;
-        }
-
-        $notification->update([
-            'is_read' => true,
-        ]);
-
-        return $notification->fresh();
-    }
-
-
-    /**
-     * Mark all customer notifications as read
-     */
-    public function markAllCustomerNotificationsAsRead()
-    {
-        return InternalNotification::query()
-            ->where('user_id', auth()->id())
-            ->where('is_read', false)
-            ->update([
-                'is_read' => true,
-            ]);
-    }
-
-
-    /**
-     * Get unread customer notifications count
-     *
-     * هذا سنستخدمه لاحقًا لرقم 🔔
-     */
-    public function getUnreadCustomerNotificationsCount()
-    {
-        return InternalNotification::query()
-            ->where('user_id', auth()->id())
-            ->where('is_read', false)
-            ->count();
     }
 }
