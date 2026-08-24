@@ -6,6 +6,8 @@ use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Order extends Model
 {
@@ -50,21 +52,21 @@ class Order extends Model
         'discount' => 'decimal:2',
         'tax' => 'decimal:2',
         'total_price' => 'decimal:2',
+        'shipping_fee' => 'decimal:2',
     ];
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function address()
+    public function address(): BelongsTo
     {
         return $this->belongsTo(Address::class);
     }
 
-    public function details()
+    public function details(): HasMany
     {
         return $this->hasMany(OrderDetail::class);
     }
 }
-
