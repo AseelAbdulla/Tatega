@@ -56,7 +56,18 @@ Route::post('/register', [
     AuthController::class,
     'register'
 ]);
+Route::get(
+    '/wallets',
+    [
+        WalletController::class,
+        'index'
+    ]
+);
 
+Route::get(
+    '/banners/active',
+    [BannerController::class, 'active']
+);
 
 /*
 |--------------------------------------------------------------------------
@@ -95,8 +106,8 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
 });
 
 // Banners
-Route::apiResource('banners', BannerController::class)
-    ->only(['index', 'show']);
+// Route::apiResource('banners', BannerController::class)
+//     ->only(['index', 'show']);
 
 
 /*
@@ -177,10 +188,6 @@ Route::middleware('auth:sanctum')->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    Route::get(
-        '/banners/active',
-        [BannerController::class, 'active']
-    );
 
 
     /*
@@ -214,68 +221,12 @@ Route::middleware('auth:sanctum')->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    Route::patch(
-        '/customer/password',
-        [
-            CustomerPasswordController::class,
-            'update'
-        ]
-    );
-
 
     /*
     |--------------------------------------------------------------------------
     | CUSTOMER PAYMENT METHODS
     |--------------------------------------------------------------------------
     */
-
-    Route::get(
-        '/customer/payment-methods',
-        [
-            CustomerPaymentMethodController::class,
-            'index'
-        ]
-    );
-
-    Route::post(
-        '/customer/payment-methods',
-        [
-            CustomerPaymentMethodController::class,
-            'store'
-        ]
-    );
-
-    Route::get(
-        '/customer/payment-methods/{paymentMethod}',
-        [
-            CustomerPaymentMethodController::class,
-            'show'
-        ]
-    );
-
-    Route::put(
-        '/customer/payment-methods/{paymentMethod}',
-        [
-            CustomerPaymentMethodController::class,
-            'update'
-        ]
-    );
-
-    Route::delete(
-        '/customer/payment-methods/{paymentMethod}',
-        [
-            CustomerPaymentMethodController::class,
-            'destroy'
-        ]
-    );
-
-    Route::patch(
-        '/customer/payment-methods/{paymentMethod}/default',
-        [
-            CustomerPaymentMethodController::class,
-            'setDefault'
-        ]
-    );
 
 
     /*
@@ -346,61 +297,12 @@ Route::middleware('auth:sanctum')->group(function () {
         |--------------------------------------------------------------------------
         */
 
-        Route::get(
-            '/order-history',
-            [
-                CustomerOrderController::class,
-                'index'
-            ]
-        );
-
 
         /*
         |--------------------------------------------------------------------------
         | INTERNATIONAL IMPORT
         |--------------------------------------------------------------------------
         */
-
-        Route::get(
-            '/international-import',
-            [
-                InternationalImportRequestController::class,
-                'index'
-            ]
-        );
-
-        Route::post(
-            '/international-import',
-            [
-                InternationalImportRequestController::class,
-                'store'
-            ]
-        );
-
-        Route::get(
-            '/international-import/{internationalImportRequest}',
-            [
-                InternationalImportRequestController::class,
-                'show'
-            ]
-        );
-
-        Route::put(
-            '/international-import/{internationalImportRequest}',
-            [
-                InternationalImportRequestController::class,
-                'update'
-            ]
-        );
-
-        Route::delete(
-            '/international-import/{internationalImportRequest}',
-            [
-                InternationalImportRequestController::class,
-                'destroy'
-            ]
-        );
-
     });
 
 
@@ -434,7 +336,6 @@ Route::middleware('auth:sanctum')->group(function () {
                 'show'
             ]
         );
-
     });
 
 
@@ -629,7 +530,6 @@ Route::middleware('auth:sanctum')->group(function () {
             '/admin/reviews/{review}',
             [ReviewController::class, 'destroy']
         );
-
     });
 
 
@@ -1055,7 +955,6 @@ Route::middleware('auth:sanctum')->group(function () {
                     'dashboardStats'
                 ]
             );
-
         });
 
 
@@ -1076,13 +975,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::middleware('permission:manage-wallets')->group(function () {
 
-            Route::get(
-                '/wallets',
-                [
-                    WalletController::class,
-                    'index'
-                ]
-            );
+
 
             Route::post(
                 '/wallets',
@@ -1115,9 +1008,7 @@ Route::middleware('auth:sanctum')->group(function () {
                     'destroy'
                 ]
             );
-
         });
-
     });
 
 
@@ -1214,8 +1105,6 @@ Route::middleware('auth:sanctum')->group(function () {
                 return response()->json([
                     'message' => 'Admin access granted.'
                 ]);
-
             }
         );
-
 });

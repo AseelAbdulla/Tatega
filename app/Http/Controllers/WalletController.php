@@ -12,11 +12,6 @@ class WalletController extends Controller
      */
    public function index()
 {
-    dd(
-        auth()->user(),
-        auth()->user()->getRoleNames(),
-        auth()->user()->getAllPermissions()->pluck('name')
-    );
 
     $wallets = Wallet::latest()->get();
 
