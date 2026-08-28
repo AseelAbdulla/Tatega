@@ -21,6 +21,7 @@ class ProductController extends Controller
     $products = Product::with([
         'category',
         'images',
+        'units',
     ])->get();
 
     return ProductResource::collection($products);

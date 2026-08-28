@@ -68,10 +68,10 @@ class UpdateUserRequest extends FormRequest
                     ->where('guard_name', 'sanctum'),
             ],
 
-            'customer_type' => [
-                'nullable',
-                'in:local,international',
-            ],
+            // 'customer_type' => [
+            //     'nullable',
+            //     'in:local,international',
+            // ],
         ];
     }
 

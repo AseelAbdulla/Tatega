@@ -18,7 +18,7 @@ class StoreAddressRequest extends FormRequest
             'city' => ['required', 'string', 'max:100'],
             'region' => ['required', 'string', 'max:100'],
             'street' => ['required', 'string', 'max:255'],
-            'building' => ['required', 'string', 'max:100'],
+            'building' => ['nullable', 'string', 'max:100'],
             'notes' => ['nullable', 'string'],
         ];
     }

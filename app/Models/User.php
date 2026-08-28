@@ -8,23 +8,21 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use App\Models\Address; // تصحيح حرف A الكبير هنا
 
 class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens, HasFactory, Notifiable, HasRoles;
 
-    /**
-     * Guard used by Spatie Permission.
-     */
     protected $guard_name = 'sanctum';
 
     protected $fillable = [
-    'name',
-    'email',
-    'phone',
-    'password',
-    'status',
-];
+        'name',
+        'email',
+        'phone',
+        'password',
+        'status',
+    ];
 
     protected $hidden = [
         'password',
@@ -39,39 +37,42 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
-    /**
-     * Default guard used by Spatie Permission.
-     */
     public function getDefaultGuardName(): string
     {
         return 'sanctum';
     }
 
-    // Addresses
-    public function addresses()
+    /**
+     * العلاقة بالمفرد لتتطابق مع الـ Controller
+     */
+    public function address()
     {
-        return $this->hasMany(Address::class);
+        return $this->hasOne(Address::class);
     }
 
-    // Carts
+    /**
+     * اختياري: إبقاء الجمع أيضاً لمنع كسر أي كود آخر في المشروع
+     */
+    public function addresses()
+    {
+        return $this->hasOne(Address::class);
+    }
+
     public function carts()
     {
         return $this->hasMany(Cart::class);
     }
 
-    // Orders
     public function orders()
     {
         return $this->hasMany(Order::class);
     }
 
-    // Reviews
     public function reviews()
     {
         return $this->hasMany(Review::class);
     }
 
-    // Internal Notifications
     public function internalNotifications()
     {
         return $this->hasMany(InternalNotification::class);

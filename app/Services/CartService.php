@@ -26,7 +26,6 @@ class CartService
                 'details.product.category:id,name',
                 'details.product:id,category_id,name,sku',
                 'details.unit:id,unit_name',
-                'user.addresses',
             ]);
     }
 

@@ -2,19 +2,16 @@
 
 namespace App\Http\Controllers\Auth;
 
-
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Validation\Rules;
 
-
 class RegisteredUserController extends Controller
 {
-
     public function store(Request $request): JsonResponse
     {
         $request->validate([
@@ -40,16 +37,11 @@ class RegisteredUserController extends Controller
             ],
             'role' => [
                 'required',
-                'in:admin,local-client,international-client'
+                'in:admin,employee,local-client,emport-client'
             ],
         ]);
 
-        $roleName = match ($request->role) {
-            'admin' => 'admin',
-            'local-client' => 'customer',
-            'international-client' => 'importer',
-        };
-
+        // 1. إنشاء المستخدم
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
@@ -58,12 +50,23 @@ class RegisteredUserController extends Controller
             'password' => Hash::make($request->string('password')),
         ]);
 
-        $role = \App\Models\Role::where('name', $roleName)->firstOrFail();
-
-        $user->roles()->attach($role->id);
+        // 2. إسناد الدور باستخدام طريقة Spatie الرسمية
+        $user->assignRole($request->role);
 
         event(new Registered($user));
- 
-        return response()->noContent();
+
+        // 3. إنشاء التوكين
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        // 4. تجهيز بيانات المستخدم مع إرجاع اسم الدور بشكل صريح لـ React
+        $userData = $user->toArray();
+        $userData['role'] = $request->role; // ضمان إرجاع الدور المختار بدقة
+
+        return response()->json([
+            'message' => 'تم إنشاء الحساب بنجاح',
+            'token' => $token,
+            'user' => $userData
+        ], 201);
     }
- }
+}
+

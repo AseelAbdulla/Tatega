@@ -10,16 +10,16 @@ class WalletController extends Controller
     /**
      * Display a listing of wallets.
      */
-   public function index()
-{
+    public function index()
+    {
 
-    $wallets = Wallet::latest()->get();
+        $wallets = Wallet::latest()->get();
 
-    return response()->json([
-        'success' => true,
-        'data' => $wallets,
-    ]);
-}
+        return response()->json([
+            'success' => true,
+            'data' => $wallets,
+        ]);
+    }
 
     /**
      * Store a newly created wallet.

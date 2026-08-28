@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreInternalNotificationRequest;
 use App\Http\Requests\UpdateInternalNotificationRequest;
 use App\Services\InternalNotificationService;
-
+use Illuminate\Http\Request;
 
 class InternalNotificationController extends Controller
 {
@@ -23,19 +23,29 @@ class InternalNotificationController extends Controller
 
 
 
+    /**
+     * جلب عدد الإشعارات غير المقروءة للعميل الحالي
+     */
+    public function unreadCount(Request $request)
+    {
+        $count = $request->user()
+            ->unreadNotifications()
+            ->count();
 
-
+        return response()->json([
+            'unread_count' => $count
+        ]);
+    }
 
     /**
      * Display all notifications
      */
-    public function index()
+    public function index(Request $request)
     {
 
-        $notifications = $this->notificationService
-            ->getAllNotifications();
-
-
+    $notifications = $request->user()
+            ->notifications()
+            ->paginate(15);
 
         return response()->json([
 

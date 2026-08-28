@@ -35,7 +35,7 @@ class StoreUserRequest extends FormRequest
             ],
 
             'phone' => [
-                'nullable',
+                'required',
                 'string',
                 'max:20',
                 'unique:users,phone',
@@ -64,10 +64,10 @@ class StoreUserRequest extends FormRequest
                 'in:active,inactive',
             ],
 
-            'customer_type' => [
-                'nullable',
-                'in:local,international',
-            ],
+            // 'customer_type' => [
+            //     'nullable',
+            //     'in:local,international',
+            // ],
         ];
     }
 
@@ -110,8 +110,8 @@ class StoreUserRequest extends FormRequest
             'status.in' =>
                 'حالة الحساب غير صحيحة.',
 
-            'customer_type.in' =>
-                'نوع العميل غير صحيح.',
+            // 'customer_type.in' =>
+            //     'نوع العميل غير صحيح.',
         ];
     }
 }

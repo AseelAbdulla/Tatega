@@ -1,12 +1,14 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
+use Spatie\Permission\Models\Role;
 
 class AuthController extends Controller
 {
@@ -50,8 +52,14 @@ class AuthController extends Controller
                 'min:8',
                 'confirmed',
             ],
-        ]);
 
+            // 👈 إضافة التحقق من حقل role المراد إنشاؤه
+            'role' => [
+                'nullable',
+                'string',
+                'in:local-client,import-client',
+            ],
+        ]);
 
         /*
         |--------------------------------------------------------------------------
@@ -72,30 +80,27 @@ class AuthController extends Controller
             'status' => 'active',
         ]);
 
-
         /*
         |--------------------------------------------------------------------------
-        | Assign Default Role
+        | Assign Dynamic Role
         |--------------------------------------------------------------------------
         |
-        | المستخدم الذي يسجل من شاشة التسجيل العادية
-        | سيكون Local Client.
-        |
-        | الدور الموجود فعلياً في قاعدة البيانات:
-        | local-client
+        | يتم قراءة الدور المرسل من React (سواء import-client أو local-client)،
+        | وتعيين local-client كقيمة افتراضية فقط إذا لم يتم تحديد الدور.
         |
         */
 
-        $defaultRole = 'local-client';
+        $requestedRole = $request->input('role', 'local-client');
 
-        if (
-            \Spatie\Permission\Models\Role::where('name', $defaultRole)
-                ->where('guard_name', 'sanctum')
-                ->exists()
-        ) {
-            $user->assignRole($defaultRole);
+        if (Role::where('name', $requestedRole)->where('guard_name', 'sanctum')->exists()) {
+            $user->assignRole($requestedRole);
+        } elseif (Role::where('name', $requestedRole)->exists()) {
+            // احتياطاً في حال كان guard_name مختلفاً في قاعدة البيانات (مثل web)
+            $user->assignRole($requestedRole);
+        } else {
+            // في حال لم يوجد الدور الممرر إطلاقاً، يتم إسناد الدور الافتراضي
+            $user->assignRole('local-client');
         }
-
 
         /*
         |--------------------------------------------------------------------------
@@ -107,7 +112,6 @@ class AuthController extends Controller
             ->createToken('auth-token')
             ->plainTextToken;
 
-
         /*
         |--------------------------------------------------------------------------
         | Get Role
@@ -115,7 +119,6 @@ class AuthController extends Controller
         */
 
         $role = $user->getRoleNames()->first();
-
 
         /*
         |--------------------------------------------------------------------------
@@ -150,7 +153,6 @@ class AuthController extends Controller
         ], 201);
     }
 
-
     /**
      * Login
      *
@@ -176,7 +178,6 @@ class AuthController extends Controller
             ],
         ]);
 
-
         /*
         |--------------------------------------------------------------------------
         | Attempt Login
@@ -196,7 +197,6 @@ class AuthController extends Controller
             ]);
         }
 
-
         /*
         |--------------------------------------------------------------------------
         | Get Authenticated User
@@ -205,7 +205,6 @@ class AuthController extends Controller
 
         /** @var \App\Models\User $user */
         $user = Auth::user();
-
 
         /*
         |--------------------------------------------------------------------------
@@ -226,7 +225,6 @@ class AuthController extends Controller
             ], 403);
         }
 
-
         /*
         |--------------------------------------------------------------------------
         | Delete Old Tokens
@@ -238,7 +236,6 @@ class AuthController extends Controller
 
         $user->tokens()->delete();
 
-
         /*
         |--------------------------------------------------------------------------
         | Create New Token
@@ -249,7 +246,6 @@ class AuthController extends Controller
             ->createToken('auth-token')
             ->plainTextToken;
 
-
         /*
         |--------------------------------------------------------------------------
         | Get Real Role From Spatie
@@ -257,7 +253,6 @@ class AuthController extends Controller
         */
 
         $role = $user->getRoleNames()->first();
-
 
         /*
         |--------------------------------------------------------------------------
@@ -270,20 +265,10 @@ class AuthController extends Controller
             ->pluck('name')
             ->values();
 
-
         /*
         |--------------------------------------------------------------------------
         | Return Login Response
         |--------------------------------------------------------------------------
-        |
-        | مهم جداً:
-        |
-        | React Login.jsx عندك ينتظر:
-        |
-        | data.data.user
-        | data.data.token
-        | data.data.token_type
-        |
         */
 
         return response()->json([
@@ -313,7 +298,6 @@ class AuthController extends Controller
         ], 200);
     }
 
-
     /**
      * Current User
      *
@@ -330,7 +314,6 @@ class AuthController extends Controller
         /** @var \App\Models\User $user */
         $user = $request->user();
 
-
         /*
         |--------------------------------------------------------------------------
         | Get Role
@@ -340,7 +323,6 @@ class AuthController extends Controller
         $role = $user
             ->getRoleNames()
             ->first();
-
 
         /*
         |--------------------------------------------------------------------------
@@ -352,7 +334,6 @@ class AuthController extends Controller
             ->getAllPermissions()
             ->pluck('name')
             ->values();
-
 
         /*
         |--------------------------------------------------------------------------
@@ -385,7 +366,6 @@ class AuthController extends Controller
         ], 200);
     }
 
-
     /**
      * Logout
      *
@@ -403,7 +383,6 @@ class AuthController extends Controller
             ->user()
             ->currentAccessToken();
 
-
         /*
         |--------------------------------------------------------------------------
         | Delete Current Token
@@ -413,7 +392,6 @@ class AuthController extends Controller
         if ($token) {
             $token->delete();
         }
-
 
         /*
         |--------------------------------------------------------------------------
