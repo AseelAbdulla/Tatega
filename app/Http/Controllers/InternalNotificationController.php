@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreInternalNotificationRequest;
 use App\Http\Requests\UpdateInternalNotificationRequest;
+use App\Models\InternalNotification;
 use App\Services\InternalNotificationService;
 use Illuminate\Http\Request;
 
@@ -28,8 +29,8 @@ class InternalNotificationController extends Controller
      */
     public function unreadCount(Request $request)
     {
-        $count = $request->user()
-            ->unreadNotifications()
+        $count = InternalNotification::where('user_id', $request->user()->id)
+            ->where('is_read', false)
             ->count();
 
         return response()->json([
@@ -37,32 +38,22 @@ class InternalNotificationController extends Controller
         ]);
     }
 
+
+
     /**
-     * Display all notifications
+     * Display all notifications for current user
      */
     public function index(Request $request)
     {
-
-    $notifications = $request->user()
-            ->notifications()
+        $notifications = InternalNotification::where('user_id', $request->user()->id)
+            ->latest()
             ->paginate(15);
 
         return response()->json([
-
             'status' => true,
-
             'data' => $notifications
-
         ]);
-
     }
-
-
-
-
-
-
-
 
 
     /**
@@ -85,9 +76,7 @@ class InternalNotificationController extends Controller
 
             'data' => $notification
 
-        ],201);
-
-
+        ], 201);
     }
 
 
@@ -111,15 +100,13 @@ class InternalNotificationController extends Controller
 
 
 
-        if(!$notification)
-        {
+        if (!$notification) {
 
             return response()->json([
 
                 'message' => 'Notification not found'
 
-            ],404);
-
+            ], 404);
         }
 
 
@@ -133,24 +120,31 @@ class InternalNotificationController extends Controller
             'data' => $notification
 
         ]);
-
     }
 
 
+    public function markAsRead(Request $request, $id)
+    {
+        $notification = $request->user()->notifications()->find($id);
 
+        if ($notification) {
+            $notification->update(['is_read' => true]);
+        }
 
+        return response()->json(['status' => true, 'message' => 'Marked as read']);
+    }
 
+    public function markAllAsRead(Request $request)
+    {
+        $request->user()->unreadNotifications()->update(['is_read' => true]);
 
-
-
-
-
-
+        return response()->json(['status' => true, 'message' => 'All marked as read']);
+    }
 
     /**
      * Update notification
      */
-    public function update(UpdateInternalNotificationRequest $request,string $id)
+    public function update(UpdateInternalNotificationRequest $request, string $id)
     {
 
 
@@ -169,21 +163,14 @@ class InternalNotificationController extends Controller
 
 
 
-        if(!$notification)
-        {
+        if (!$notification) {
 
             return response()->json([
 
                 'message' => 'Notification not found'
 
-            ],404);
-
+            ], 404);
         }
-
-
-
-
-
 
         return response()->json([
 
@@ -192,7 +179,6 @@ class InternalNotificationController extends Controller
             'data' => $notification
 
         ]);
-
     }
 
 
@@ -220,15 +206,13 @@ class InternalNotificationController extends Controller
 
 
 
-        if(!$deleted)
-        {
+        if (!$deleted) {
 
             return response()->json([
 
                 'message' => 'Notification not found'
 
-            ],404);
-
+            ], 404);
         }
 
 
@@ -242,8 +226,5 @@ class InternalNotificationController extends Controller
             'message' => 'Notification deleted successfully'
 
         ]);
-
     }
-
-
 }

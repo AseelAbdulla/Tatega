@@ -15,8 +15,8 @@ class StoreInternalNotificationRequest extends FormRequest
     {
         return [
             'user_id' => ['required', 'exists:users,id'],
-            'title' => ['required', 'array'],
-            'message' => ['required', 'array'],
+            'title' => ['required'], // إزالة شرط 'array' ليعمل مع النصوص والمصفوفات
+            'message' => ['required'], // إزالة شرط 'array'
             'type' => ['required', 'string', 'max:100'],
             'sent_at' => ['nullable', 'date'],
         ];

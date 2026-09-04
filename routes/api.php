@@ -15,6 +15,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\CartItemController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\FeatureController;
+use App\Http\Controllers\ImportRequestController;
 use App\Http\Controllers\InternalNotificationController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PartnerController;
@@ -92,7 +93,7 @@ Route::middleware('auth:sanctum')->group(function () {
         // ✅ المسار الجديد للتعديل
         Route::put('/user/update', [UserController::class, 'updateProfile']);
         Route::put('/user/profile', [UserController::class, 'profile']);
-        Route::put('/user/changePassword', [UserController::class, 'changePassword']);
+        Route::put('/user/change-password', [UserController::class, 'changePassword']);
         Route::get('/notifications/unread-count', [InternalNotificationController::class, 'unreadCount']);
         Route::get('/notifications', [InternalNotificationController::class, 'index']);
         Route::patch('/notifications/read-all', [InternalNotificationController::class, 'markAllAsRead']);
@@ -130,7 +131,13 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::apiResource('products', ProductController::class)->except(['index', 'show']);
             Route::apiResource('product-images', ProductImageController::class)->except(['index', 'show']);
             Route::apiResource('product-units', ProductUnitController::class)->except(['index', 'show']);
+            // ✅ مسارات الإشعارات الخاصة بالأدمن (المطابقة للفرونت إند)
             Route::apiResource('internal-notifications', InternalNotificationController::class);
+            Route::get('/notifications/unread-count', [InternalNotificationController::class, 'unreadCount']);
+            Route::get('/notifications', [InternalNotificationController::class, 'index']);
+            Route::patch('/notifications/read-all', [InternalNotificationController::class, 'markAllAsRead']);
+            Route::patch('/notifications/{id}/read', [InternalNotificationController::class, 'markAsRead']);
+            Route::get('/notifications/{id}', [InternalNotificationController::class, 'show']);
         });
 
         // Users Management (Permission-based)
@@ -197,17 +204,33 @@ Route::middleware('auth:sanctum')->group(function () {
         });
 
         // Admin Wallets Management
-        Route::middleware('permission:manage-wallets')->group(function () {
-            Route::post('/wallets', [WalletController::class, 'store']);
-            Route::get('/wallets/{wallet}', [WalletController::class, 'show']);
-            Route::put('/wallets/{wallet}', [WalletController::class, 'update']);
-            Route::delete('/wallets/{wallet}', [WalletController::class, 'destroy']);
-        });
+        // Route::middleware('permission:manage-wallets')->group(function () {
+        Route::post('/wallets', [WalletController::class, 'store']);
+        Route::get('/wallets/{wallet}', [WalletController::class, 'show']);
+        Route::put('/wallets/{wallet}', [WalletController::class, 'update']);
+        Route::delete('/wallets/{wallet}', [WalletController::class, 'destroy']);
+        // });
 
         // Admin Reviews Management
         Route::get('/reviews', [ReviewController::class, 'index']);
         Route::get('/reviews/{review}', [ReviewController::class, 'show']);
         Route::patch('/reviews/{review}', [ReviewController::class, 'update']);
         Route::delete('/reviews/{review}', [ReviewController::class, 'destroy']);
+    });
+
+    Route::get('/import-requests', [ImportRequestController::class, 'index']);
+    Route::post('/import-requests', [ImportRequestController::class, 'store']);
+    Route::get('/import-requests/{importRequest}', [ImportRequestController::class, 'show']);
+    Route::post('/import-requests/{id}/cancel', [ImportRequestController::class, 'cancel']);
+    Route::put('/import-requests/{id}', [ImportRequestController::class, 'update']);
+
+
+    Route::post('/import-requests/{id}/accept-offer', [ImportRequestController::class, 'acceptOffer']);
+    Route::post('/import-requests/{id}/reject-offer', [ImportRequestController::class, 'rejectOffer']);
+
+
+    // مسار مراجعة الإدارة (يمكن حمايته بـ Spatie Role middleware)
+    Route::middleware('role:admin')->group(function () {
+        Route::post('/import-requests/{importRequest}/review', [ImportRequestController::class, 'review']);
     });
 });

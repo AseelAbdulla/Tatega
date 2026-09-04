@@ -9,6 +9,8 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use App\Models\Address; // تصحيح حرف A الكبير هنا
+use App\Models\importRequests;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -50,13 +52,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasOne(Address::class);
     }
 
-    /**
-     * اختياري: إبقاء الجمع أيضاً لمنع كسر أي كود آخر في المشروع
-     */
     public function addresses()
     {
         return $this->hasOne(Address::class);
     }
+
 
     public function carts()
     {
@@ -76,5 +76,19 @@ class User extends Authenticatable implements MustVerifyEmail
     public function internalNotifications()
     {
         return $this->hasMany(InternalNotification::class);
+    }
+
+    public function notifications()
+    {
+        return $this->hasMany(InternalNotification::class, 'user_id')->latest('sent_at');
+    }
+
+    public function unreadNotifications()
+    {
+        return $this->hasMany(InternalNotification::class, 'user_id')->where('is_read', false);
+    }
+
+    public function importRequests(){
+        return $this->hasMany(ImportRequest::class);
     }
 }
