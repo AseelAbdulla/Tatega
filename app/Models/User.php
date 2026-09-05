@@ -2,16 +2,21 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
+use App\Models\Address; // تصحيح حرف A الكبير هنا
+use App\Models\importRequests;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
- 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasFactory;
+    use HasApiTokens, HasFactory, Notifiable, HasRoles;
+
+    protected $guard_name = 'sanctum';
 
     protected $fillable = [
         'name',
@@ -23,42 +28,67 @@ class User extends Authenticatable
 
     protected $hidden = [
         'password',
+        'remember_token',
     ];
 
-    // الأدوار (Roles) - علاقة Many-to-Many عبر جدول pivot `role_user`
-    public function roles()
-    
+    protected function casts(): array
     {
-        return $this->belongsToMany(Role::class, 'role_user');
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+        ];
     }
 
-    // العناوين
+    public function getDefaultGuardName(): string
+    {
+        return 'sanctum';
+    }
+
+    /**
+     * العلاقة بالمفرد لتتطابق مع الـ Controller
+     */
+    public function address()
+    {
+        return $this->hasOne(Address::class);
+    }
+
     public function addresses()
     {
-        return $this->hasMany(Address::class);
+        return $this->hasOne(Address::class);
     }
 
-    // السلات
+
     public function carts()
     {
         return $this->hasMany(Cart::class);
     }
 
-    // الطلبات
     public function orders()
     {
         return $this->hasMany(Order::class);
     }
 
-    // التقييمات
     public function reviews()
     {
         return $this->hasMany(Review::class);
     }
 
-    // الإشعارات الداخلية
     public function internalNotifications()
     {
         return $this->hasMany(InternalNotification::class);
+    }
+
+    public function notifications()
+    {
+        return $this->hasMany(InternalNotification::class, 'user_id')->latest('sent_at');
+    }
+
+    public function unreadNotifications()
+    {
+        return $this->hasMany(InternalNotification::class, 'user_id')->where('is_read', false);
+    }
+
+    public function importRequests(){
+        return $this->hasMany(ImportRequest::class);
     }
 }

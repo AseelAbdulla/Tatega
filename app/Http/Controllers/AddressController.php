@@ -2,83 +2,57 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\Address;
-use App\Models\User;
-use Illuminate\Support\Facades\Validator;
+use App\Http\Requests\StoreAddressRequest;
+use App\Http\Requests\UpdateAddressRequest;
+use App\Services\AddressService;
+
 
 class AddressController extends Controller
 {
 
-    /**
-     * Display all addresses.
-     */
-    public function index()
-    {
-        $addresses = Address::with('user:id,name,email')->get();
+    protected $addressService;
 
-        return response()->json([
-            'status' => true,
-            'data' => $addresses
-        ]);
+
+    public function __construct(AddressService $addressService)
+    {
+        $this->addressService = $addressService;
     }
 
 
 
+
     /**
-     * Store new address.
+     * Display all addresses
      */
-    public function store(Request $request)
+    public function index()
     {
 
-        $validator = Validator::make($request->all(), [
+        $addresses = $this->addressService->getAllAddresses();
 
-            'user_id' => 'required|exists:users,id',
 
-            'country' => 'required|string|max:100',
+        return response()->json([
 
-            'city' => 'required|string|max:100',
+            'status' => true,
 
-            'region' => 'required|string|max:100',
-
-            'street' => 'required|string|max:255',
-
-            'building' => 'required|string|max:100',
-
-            'notes' => 'nullable|string'
+            'data' => $addresses
 
         ]);
 
-
-        if ($validator->fails()) {
-
-            return response()->json([
-                'errors' => $validator->errors()
-            ],422);
-
-        }
+    }
 
 
 
-        $address = Address::create([
 
-            'user_id' => $request->user_id,
 
-            'country' => $request->country,
+    /**
+     * Store address
+     */
+    public function store(StoreAddressRequest $request)
+    {
 
-            'city' => $request->city,
-
-            'region' => $request->region,
-
-            'street' => $request->street,
-
-            'building' => $request->building,
-
-            'notes' => $request->notes
-
-        ]);
-
+        $address = $this->addressService->createAddress(
+            $request->validated()
+        );
 
 
         return response()->json([
@@ -94,30 +68,37 @@ class AddressController extends Controller
 
 
 
+
+
+
     /**
-     * Display specific address.
+     * Show address
      */
     public function show(string $id)
     {
 
-        $address = Address::with('user:id,name,email')
-                    ->find($id);
+        $address = $this->addressService->getAddressById($id);
 
 
-        if(!$address){
+
+        if(!$address)
+        {
 
             return response()->json([
-                'message'=>'Address not found'
+
+                'message' => 'Address not found'
+
             ],404);
 
         }
 
 
+
         return response()->json([
 
-            'status'=>true,
+            'status' => true,
 
-            'data'=>$address
+            'data' => $address
 
         ]);
 
@@ -127,76 +108,44 @@ class AddressController extends Controller
 
 
 
+
+
+
     /**
-     * Update address.
+     * Update address
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateAddressRequest $request,string $id)
     {
 
-        $address = Address::find($id);
+
+        $address = $this->addressService->updateAddress(
+
+            $id,
+
+            $request->validated()
+
+        );
 
 
-        if(!$address){
+
+        if(!$address)
+        {
 
             return response()->json([
-                'message'=>'Address not found'
+
+                'message' => 'Address not found'
+
             ],404);
 
         }
 
 
 
-        $validator = Validator::make($request->all(), [
-
-            'country' => 'nullable|string|max:100',
-
-            'city' => 'nullable|string|max:100',
-
-            'region' => 'nullable|string|max:100',
-
-            'street' => 'nullable|string|max:255',
-
-            'building' => 'nullable|string|max:100',
-
-            'notes' => 'nullable|string'
-
-        ]);
-
-
-
-        if($validator->fails()){
-
-            return response()->json([
-                'errors'=>$validator->errors()
-            ],422);
-
-        }
-
-
-
-        $address->update([
-
-            'country'=>$request->country ?? $address->country,
-
-            'city'=>$request->city ?? $address->city,
-
-            'region'=>$request->region ?? $address->region,
-
-            'street'=>$request->street ?? $address->street,
-
-            'building'=>$request->building ?? $address->building,
-
-            'notes'=>$request->notes ?? $address->notes
-
-        ]);
-
-
-
         return response()->json([
 
-            'message'=>'Address updated successfully',
+            'message' => 'Address updated successfully',
 
-            'data'=>$address
+            'data' => $address
 
         ]);
 
@@ -205,33 +154,41 @@ class AddressController extends Controller
 
 
 
+
+
+
+
     /**
-     * Delete address.
+     * Delete address
      */
     public function destroy(string $id)
     {
 
-        $address = Address::find($id);
+
+        $deleted = $this->addressService->deleteAddress($id);
 
 
-        if(!$address){
+
+        if(!$deleted)
+        {
 
             return response()->json([
-                'message'=>'Address not found'
+
+                'message' => 'Address not found'
+
             ],404);
 
         }
 
 
-        $address->delete();
-
 
         return response()->json([
 
-            'message'=>'Address deleted successfully'
+            'message' => 'Address deleted successfully'
 
         ]);
 
     }
+
 
 }

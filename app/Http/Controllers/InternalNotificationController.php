@@ -2,93 +2,87 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreInternalNotificationRequest;
+use App\Http\Requests\UpdateInternalNotificationRequest;
 use App\Models\InternalNotification;
-use Illuminate\Support\Facades\Validator;
+use App\Services\InternalNotificationService;
+use Illuminate\Http\Request;
 
 class InternalNotificationController extends Controller
 {
 
-    /**
-     * Display all notifications
-     */
-    public function index()
-    {
-        $notifications = InternalNotification::with('user:id,name')
-                            ->get();
 
+    protected $notificationService;
+
+
+
+    public function __construct(InternalNotificationService $notificationService)
+    {
+        $this->notificationService = $notificationService;
+    }
+
+
+
+
+    /**
+     * جلب عدد الإشعارات غير المقروءة للعميل الحالي
+     */
+    public function unreadCount(Request $request)
+    {
+        $count = InternalNotification::where('user_id', $request->user()->id)
+            ->where('is_read', false)
+            ->count();
 
         return response()->json([
-            'status'=>true,
-            'data'=>$notifications
+            'unread_count' => $count
         ]);
     }
 
 
+
+    /**
+     * Display all notifications for current user
+     */
+    public function index(Request $request)
+    {
+        $notifications = InternalNotification::where('user_id', $request->user()->id)
+            ->latest()
+            ->paginate(15);
+
+        return response()->json([
+            'status' => true,
+            'data' => $notifications
+        ]);
+    }
 
 
     /**
      * Store notification
      */
-    public function store(Request $request)
+    public function store(StoreInternalNotificationRequest $request)
     {
 
-        $validator = Validator::make($request->all(), [
 
-            'user_id'=>'nullable|exists:users,id',
-
-            'title'=>'required|array',
-
-            'message'=>'required|array',
-
-            'type'=>'required|string|max:100',
-
-            'is_read'=>'nullable|boolean',
-
-            'sent_at'=>'nullable|date'
-
-        ]);
-
-
-
-        if($validator->fails()){
-
-            return response()->json([
-                'errors'=>$validator->errors()
-            ],422);
-
-        }
-
-
-
-        $notification = InternalNotification::create([
-
-            'user_id'=>$request->user_id,
-
-            'title'=>$request->title,
-
-            'message'=>$request->message,
-
-            'type'=>$request->type,
-
-            'is_read'=>$request->is_read ?? false,
-
-            'sent_at'=>$request->sent_at
-
-        ]);
+        $notification = $this->notificationService
+            ->createNotification(
+                $request->validated()
+            );
 
 
 
         return response()->json([
 
-            'message'=>'Notification created successfully',
+            'message' => 'Notification created successfully',
 
-            'data'=>$notification
+            'data' => $notification
 
-        ],201);
-
+        ], 201);
     }
+
+
+
+
+
 
 
 
@@ -99,107 +93,100 @@ class InternalNotificationController extends Controller
     public function show(string $id)
     {
 
-        $notification = InternalNotification::with('user:id,name')
-                            ->find($id);
+
+        $notification = $this->notificationService
+            ->getNotificationById($id);
 
 
 
-        if(!$notification){
+
+        if (!$notification) {
 
             return response()->json([
-                'message'=>'Notification not found'
-            ],404);
 
+                'message' => 'Notification not found'
+
+            ], 404);
         }
+
+
 
 
 
         return response()->json([
 
-            'status'=>true,
+            'status' => true,
 
-            'data'=>$notification
+            'data' => $notification
 
         ]);
-
     }
 
 
+    public function markAsRead(Request $request, $id)
+    {
+        $notification = $request->user()->notifications()->find($id);
 
+        if ($notification) {
+            $notification->update(['is_read' => true]);
+        }
 
+        return response()->json(['status' => true, 'message' => 'Marked as read']);
+    }
+
+    public function markAllAsRead(Request $request)
+    {
+        $request->user()->unreadNotifications()->update(['is_read' => true]);
+
+        return response()->json(['status' => true, 'message' => 'All marked as read']);
+    }
 
     /**
      * Update notification
      */
-    public function update(Request $request,string $id)
+    public function update(UpdateInternalNotificationRequest $request, string $id)
     {
 
-        $notification = InternalNotification::find($id);
+
+        $notification = $this->notificationService
+            ->updateNotification(
+
+                $id,
+
+                $request->validated()
+
+            );
 
 
 
-        if(!$notification){
-
-            return response()->json([
-                'message'=>'Notification not found'
-            ],404);
-
-        }
 
 
 
-        $validator = Validator::make($request->all(), [
 
-            'title'=>'nullable|array',
-
-            'message'=>'nullable|array',
-
-            'type'=>'nullable|string|max:100',
-
-            'is_read'=>'nullable|boolean',
-
-            'sent_at'=>'nullable|date'
-
-        ]);
-
-
-
-        if($validator->fails()){
+        if (!$notification) {
 
             return response()->json([
-                'errors'=>$validator->errors()
-            ],422);
 
+                'message' => 'Notification not found'
+
+            ], 404);
         }
-
-
-
-
-        $notification->update([
-
-            'title'=>$request->title ?? $notification->title,
-
-            'message'=>$request->message ?? $notification->message,
-
-            'type'=>$request->type ?? $notification->type,
-
-            'is_read'=>$request->is_read ?? $notification->is_read,
-
-            'sent_at'=>$request->sent_at ?? $notification->sent_at
-
-        ]);
-
-
 
         return response()->json([
 
-            'message'=>'Notification updated successfully',
+            'message' => 'Notification updated successfully',
 
-            'data'=>$notification
+            'data' => $notification
 
         ]);
-
     }
+
+
+
+
+
+
+
 
 
 
@@ -211,30 +198,33 @@ class InternalNotificationController extends Controller
     public function destroy(string $id)
     {
 
-        $notification = InternalNotification::find($id);
+
+        $deleted = $this->notificationService
+            ->deleteNotification($id);
 
 
 
-        if(!$notification){
+
+
+        if (!$deleted) {
 
             return response()->json([
-                'message'=>'Notification not found'
-            ],404);
 
+                'message' => 'Notification not found'
+
+            ], 404);
         }
 
 
 
-        $notification->delete();
+
 
 
 
         return response()->json([
 
-            'message'=>'Notification deleted successfully'
+            'message' => 'Notification deleted successfully'
 
         ]);
-
     }
-
 }

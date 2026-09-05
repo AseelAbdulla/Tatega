@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::disableForeignKeyConstraints();
 
         Schema::create('categories', function (Blueprint $table) {
-            $table->id()->unique();
+            $table->id();
             $table->json('name');
             $table->string('slug', 255)->unique();
             $table->string('image', 255)->nullable();
