@@ -11,72 +11,66 @@ class RolesAndPermissionsSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. إعادة إرسال وتفريغ الـ Cache الخاص بالصلاحيات
+        // 1. إعادة ضبط وتفريغ كاش الصلاحيات
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // 2. تعريف قائمة الصلاحيات الشاملة للنظام
+        $guard = 'sanctum';
+
+        // 2. قائمة الصلاحيات
         $permissions = [
-            // إدارة المستخدمين والأدوار (المدير فقط)
-            'view-users', 'create-users', 'edit-users', 'delete-users',
-            'view-roles', 'create-roles', 'edit-roles', 'delete-roles',
+            // إدارة المستخدمين والأدوار
+            'view-users', 'create-users', 'update-users', 'delete-users',
+            'view-roles', 'create-roles', 'update-roles', 'delete-roles',
 
-            // إدارة الأصناف والمنتجات والواجهات (المدير + الموظف)
-            'view-products', 'create-products', 'edit-products', 'delete-products',
-            'view-categories', 'create-categories', 'edit-categories', 'delete-categories',
-            'manage-banners', 'manage-settings', 'manage-features', 'manage-partners','manage-wallets',
-            'permission:manage-wallets'<
+            // تبويب التصنيفات
+            'view-categories', 'create-categories', 'update-categories', 'delete-categories',
 
-            // إدارة جميع الطلبات (المدير + الموظف)
-            'view-all-orders', 'edit-all-orders', 'delete-all-orders',
+            // تبويب المنتجات وملحقاتها
+            'view-products', 'create-products', 'update-products', 'delete-products',
+            'manage-product-images', 'manage-product-units',
 
-            // صلاحيات العميل المحلي
-            'view-local-orders',
-            'create-local-orders',
-            'manage-local-profile',
+            // تبويب الطلبات المحلية
+            'view-orders', 'update-orders-status', 'cancel-orders', 'delete-orders',
 
-            // صلاحيات العميل الدولي
-            'view-intl-orders',
-            'create-intl-orders',
-            'view-shipping-documents',
-            'manage-intl-profile',
-            'view-intl-notifications',
+            // تبويب طلبات الاستيراد (محجوب تماماً عن الموظف والعميل المحلي)
+            'view-import-requests', 'create-import-requests', 'manage-import-requests', 'review-import-requests',
+
+            // المحتوى المساعد والإعدادات
+            'manage-banners', 'manage-features', 'manage-partners', 
+            'manage-settings', 'manage-wallets', 'manage-reviews',
         ];
 
-        // 3. إنشاء الصلاحيات في قاعدة البيانات باستخدام guard الـ sanctum
+        // إنشاؤها بـ guard = sanctum
         foreach ($permissions as $permission) {
-            Permission::findOrCreate($permission, 'sanctum');
+            Permission::findOrCreate($permission, $guard);
         }
 
-        // 4. إنشاء وتعيين الأدوار الأربعة:
+        // 3. دور المدير (admin) - كافة الصلاحيات
+        $adminRole = Role::findOrCreate('admin', $guard);
+        $adminRole->syncPermissions(Permission::where('guard_name', $guard)->get());
 
-        // أ) مدير النظام (Admin): يملك كافة الصلاحيات
-        $adminRole = Role::findOrCreate('admin', 'sanctum');
-        $adminRole->givePermissionTo(Permission::all());
-
-        // ب) الموظف (Employee): يعرض ويتحكم بالطلبات، المنتجات، والأصناف فقط
-        $employeeRole = Role::findOrCreate('employee', 'sanctum');
-        $employeeRole->givePermissionTo([
-            'view-products', 'create-products', 'edit-products', 'delete-products',
-            'view-categories', 'create-categories', 'edit-categories', 'delete-categories',
-            'view-all-orders', 'edit-all-orders', 'delete-all-orders',
+        // 4. دور الموظف (employee) - التصنيفات، المنتجات، الطلبات المحلية، المحتوى
+        $employeeRole = Role::findOrCreate('employee', $guard);
+        $employeeRole->syncPermissions([
+            // التصنيفات
+            'view-categories', 'create-categories', 'update-categories', 'delete-categories',
+            // المنتجات وملحقاتها
+            'view-products', 'create-products', 'update-products', 'delete-products',
+            'manage-product-images', 'manage-product-units',
+            // الطلبات المحلية
+            'view-orders', 'update-orders-status',
+            // الملحقات
+            'manage-banners', 'manage-features', 'manage-partners', 'manage-reviews',
         ]);
 
-        // ج) العميل المحلي (Local Client): بروفايل وطلبات محلية
-        $localClientRole = Role::findOrCreate('local-client', 'sanctum');
-        $localClientRole->givePermissionTo([
-            'view-local-orders',
-            'create-local-orders',
-            'manage-local-profile',
-        ]);
+        // 5. دور العميل المحلي (local-client)
+        Role::findOrCreate('local-client', $guard);
 
-        // د) العميل الدولي (International Client): بروفايل، طلبات دولية، مستندات، وإشعارات
-        $intlClientRole = Role::findOrCreate('international-client', 'sanctum');
-        $intlClientRole->givePermissionTo([
-            'view-intl-orders',
-            'create-intl-orders',
-            'view-shipping-documents',
-            'manage-intl-profile',
-            'view-intl-notifications',
+        // 6. دور العميل المستورد (import-client)
+        $importClientRole = Role::findOrCreate('import-client', $guard);
+        $importClientRole->syncPermissions([
+            'view-import-requests',
+            'create-import-requests',
         ]);
     }
 }

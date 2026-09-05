@@ -11,6 +11,7 @@ use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Gate;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -41,6 +42,11 @@ class AppServiceProvider extends ServiceProvider
                 . "/password-reset/$token?email={$notifiable->getEmailForPasswordReset()}";
         });
 
+
+        // منح المدير كافة الصلاحيات بدون الحاجة للتحقق الفردي
+        Gate::before(function ($user, $ability) {
+            return $user->hasRole('admin') ? true : null;
+        });
 
         /*
         |--------------------------------------------------------------------------

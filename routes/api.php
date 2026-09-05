@@ -127,10 +127,17 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Catalog Management (Admin Role Only)
         Route::middleware('role:admin')->group(function () {
-            Route::apiResource('categories', CategoryController::class)->except(['index', 'show']);
-            Route::apiResource('products', ProductController::class)->except(['index', 'show']);
-            Route::apiResource('product-images', ProductImageController::class)->except(['index', 'show']);
-            Route::apiResource('product-units', ProductUnitController::class)->except(['index', 'show']);
+            // Catalog Management (Admin & Employee)
+
+            // Catalog Management (Admin & Employee)
+            Route::middleware('role:admin|employee,sanctum')->group(function () {
+                Route::apiResource('categories', CategoryController::class)->except(['index', 'show']);
+                Route::apiResource('products', ProductController::class)->except(['index', 'show']);
+                Route::apiResource('product-images', ProductImageController::class)->except(['index', 'show']);
+                Route::apiResource('product-units', ProductUnitController::class)->except(['index', 'show']);
+            });
+
+
             // ✅ مسارات الإشعارات الخاصة بالأدمن (المطابقة للفرونت إند)
             Route::apiResource('internal-notifications', InternalNotificationController::class);
             Route::get('/notifications/unread-count', [InternalNotificationController::class, 'unreadCount']);
@@ -218,19 +225,27 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/reviews/{review}', [ReviewController::class, 'destroy']);
     });
 
-    Route::get('/import-requests', [ImportRequestController::class, 'index']);
-    Route::post('/import-requests', [ImportRequestController::class, 'store']);
-    Route::get('/import-requests/{importRequest}', [ImportRequestController::class, 'show']);
-    Route::post('/import-requests/{id}/cancel', [ImportRequestController::class, 'cancel']);
-    Route::put('/import-requests/{id}', [ImportRequestController::class, 'update']);
+    /*
+|--------------------------------------------------------------------------
+| Import Requests Routes
+|--------------------------------------------------------------------------
+*/
+    Route::middleware(['auth:sanctum'])->group(function () {
 
+        // يتاح فقط للمدير والعميل المستورد (الموظف والعميل المحلي محجوبان تماماً)
+        Route::middleware('role:admin|import-client,sanctum')->group(function () {
+            Route::get('/import-requests', [ImportRequestController::class, 'index']);
+            Route::post('/import-requests', [ImportRequestController::class, 'store']);
+            Route::get('/import-requests/{importRequest}', [ImportRequestController::class, 'show']);
+            Route::post('/import-requests/{id}/cancel', [ImportRequestController::class, 'cancel']);
+            Route::put('/import-requests/{id}', [ImportRequestController::class, 'update']);
+            Route::post('/import-requests/{id}/accept-offer', [ImportRequestController::class, 'acceptOffer']);
+            Route::post('/import-requests/{id}/reject-offer', [ImportRequestController::class, 'rejectOffer']);
+        });
 
-    Route::post('/import-requests/{id}/accept-offer', [ImportRequestController::class, 'acceptOffer']);
-    Route::post('/import-requests/{id}/reject-offer', [ImportRequestController::class, 'rejectOffer']);
-
-
-    // مسار مراجعة الإدارة (يمكن حمايته بـ Spatie Role middleware)
-    Route::middleware('role:admin')->group(function () {
-        Route::post('/import-requests/{importRequest}/review', [ImportRequestController::class, 'review']);
+        // مراجعة الطلبات والتسعير (المدير فقط)
+        Route::middleware('role:admin,sanctum')->group(function () {
+            Route::post('/import-requests/{importRequest}/review', [ImportRequestController::class, 'review']);
+        });
     });
 });
